@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>London areas ranked by desk price</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600&family=Inter:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,600;8..60,700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --teal: #23606C;
+    --ink: #121212;
+    --body: #333333;
+    --muted: #6B6B6B;
+    --rule: #E1E1E1;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body { margin: 0; background: #fff; color: var(--body); font-family: Inter, -apple-system, "Segoe UI", Roboto, Arial, sans-serif; -webkit-font-smoothing: antialiased; }
+  .fof-graphic { max-width: 760px; margin: 0 auto; padding: 24px 16px; }
+  .kicker { margin: 0 0 6px; font-size: 12px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--teal); }
+  .fof-graphic h3 { margin: 0 0 16px; font-family: "Source Serif 4", Georgia, "Times New Roman", serif; font-size: clamp(24px, 4vw, 32px); line-height: 1.15; font-weight: 700; color: var(--ink); letter-spacing: -.01em; }
+  .search { display: block; width: 100%; max-width: 320px; margin: 0 0 16px; font: inherit; font-size: 16px; color: var(--ink); border: 1px solid #BDBDBD; border-radius: 4px; padding: 10px 12px; }
+  .search:focus { outline: 2px solid var(--teal); outline-offset: 1px; border-color: var(--teal); }
+  .scroll { border-top: 3px solid var(--ink); }
+  table { width: 100%; border-collapse: collapse; font-size: 15px; }
+  thead th { padding: 0; text-align: left; font-weight: 500; border-bottom: 1px solid var(--ink); vertical-align: bottom; }
+  thead th button { all: unset; box-sizing: border-box; display: block; width: 100%; min-height: 44px; padding: 10px 8px; cursor: pointer; font-size: 11px; line-height: 1.3; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+  thead th button:hover { color: var(--ink); }
+  thead th button:focus-visible { outline: 2px solid var(--teal); outline-offset: -2px; }
+  thead th button::after { content: "↕"; margin-left: 4px; opacity: .4; }
+  thead th[aria-sort="ascending"] button, thead th[aria-sort="descending"] button { color: var(--ink); }
+  thead th[aria-sort="ascending"] button::after { content: "↑"; opacity: 1; }
+  thead th[aria-sort="descending"] button::after { content: "↓"; opacity: 1; }
+  tbody td { padding: 10px 8px; border-bottom: 1px solid var(--rule); vertical-align: middle; }
+  tbody tr.hidden { display: none; }
+  .rank { width: 44px; font-family: "Source Serif 4", Georgia, serif; font-weight: 600; font-size: 17px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .area { font-weight: 600; color: var(--ink); white-space: nowrap; }
+  .area small { display: block; margin-top: 1px; font-size: 11px; font-weight: 400; color: var(--muted); }
+  .price { width: 55%; }
+  .bar-wrap { display: flex; align-items: center; gap: 10px; }
+  .bar { height: 14px; border-radius: 0 2px 2px 0; flex: none; }
+  .price-val { font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .no-results { display: none; padding: 16px 8px; color: var(--muted); font-size: 14px; border-bottom: 1px solid var(--rule); }
+  .more { display: block; width: 100%; margin-top: 12px; }
+  .footer { margin-top: 14px; font-size: 12px; line-height: 1.55; color: var(--muted); }
+  .footer p { margin: 0 0 6px; }
+  .footer strong { color: var(--body); font-weight: 600; }
+  .footer a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
+  .credit { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--rule); font-size: 12px; font-weight: 600; letter-spacing: .04em; color: var(--teal); }
+  .credit a { color: inherit; text-decoration: none; }
+  .credit a:hover { text-decoration: underline; }
+  .tools { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 14px; }
+  .tool-btn { appearance: none; font: inherit; font-size: 13px; font-weight: 600; color: var(--teal); background: #fff; border: 1px solid var(--teal); border-radius: 4px; min-height: 40px; padding: 8px 14px; cursor: pointer; }
+  .tool-btn:hover { background: var(--teal); color: #fff; }
+  .tool-btn:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
+  .tool-btn[disabled] { opacity: .6; cursor: wait; }
+  .embed-box { display: none; margin-top: 10px; }
+  .embed-box.open { display: block; }
+  .embed-box label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+  .embed-box textarea { width: 100%; min-height: 110px; font: 12px/1.4 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--ink); border: 1px solid var(--rule); border-radius: 4px; padding: 10px; resize: vertical; }
+  .embed-row { margin-top: 8px; }
+  .status { font-size: 12px; color: var(--teal); }
+  /* Tabs */
+  .tabs { display: inline-flex; gap: 4px; margin: 0 0 16px; padding: 4px; background: #F1F3F3; border-radius: 999px; }
+  .tabs button { appearance: none; font: inherit; font-size: 14px; font-weight: 600; color: var(--muted); background: none; border: 0; border-radius: 999px; min-height: 40px; padding: 8px 20px; cursor: pointer; }
+  .tabs button[aria-selected="true"] { background: var(--teal); color: #fff; }
+  .tabs button:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
+  [hidden] { display: none !important; }
+  /* Storybook map */
+  .paper { position: relative; padding: 14px 12px 12px; background: #FBF6EC; border: 1px solid #EADFC9; border-radius: 10px;
+           background-image: radial-gradient(rgba(120,100,70,.06) 1px, transparent 1px); background-size: 6px 6px; }
+  .map { display: block; width: 100%; height: auto; overflow: visible; }
+  .borough { stroke: #FBF6EC; stroke-width: 1.8; stroke-linejoin: round; cursor: pointer; transition: opacity .15s; }
+  .borough:hover, .borough:focus { outline: none; stroke: #4A4036; stroke-width: 2.2; }
+  .borough.active { stroke: #4A4036; stroke-width: 2.6; }
+  .thames { fill: none; stroke: #9CC3CF; stroke-width: 7; stroke-linecap: round; stroke-linejoin: round; opacity: .9; pointer-events: none; }
+  .river-label { font-family: "Source Serif 4", Georgia, serif; font-style: italic; font-size: 13px; fill: #5D8A97; pointer-events: none; }
+  .note { font-family: Caveat, "Comic Sans MS", cursive; font-size: 21px; font-weight: 600; fill: #4A4036; }
+  .note-arrow { fill: none; stroke: #4A4036; stroke-width: 1.6; stroke-dasharray: 4 4; stroke-linecap: round; }
+  .legend { margin-top: 10px; max-width: 420px; font-size: 12px; color: var(--muted); }
+  .legend .ramp { display: block; height: 10px; border-radius: 999px; background: linear-gradient(90deg, #23606C 0%, #6FA0A8 15.6%, #EEE8D8 32.2%, #F0AA7D 48.9%, #D6683C 71.1%, #96341E 100%); }
+  .legend-labels { display: flex; justify-content: space-between; gap: 8px; margin-top: 4px; }
+  .legend-labels span:nth-child(2) { text-align: center; }
+  .legend-labels span:last-child { text-align: right; }
+  .info { margin: 10px 0 0; min-height: 2.6em; font-size: 14px; line-height: 1.4; color: var(--ink); }
+  .info strong { font-weight: 600; }
+  .notes-list { display: none; margin: 12px 0 0; padding: 0; list-style: none; font-family: Caveat, "Comic Sans MS", cursive; font-size: 20px; line-height: 1.3; color: #4A4036; }
+  .notes-list li { margin: 0 0 4px; }
+  .notes-list strong { font-weight: 600; }
+  @media (max-width: 480px) {
+    .fof-graphic { padding: 20px 16px; } .search { max-width: none; }
+    table { font-size: 14px; } .rank { width: 30px; font-size: 15px; }
+    tbody td { padding: 9px 6px; } thead th button { padding: 10px 6px; }
+    .price { width: auto; } .bar-wrap { gap: 6px; } .bar { height: 12px; }
+  }
+  @media (max-width: 600px) { .callouts { display: none; } .notes-list { display: block; } .river-label { font-size: 18px; } }
+  @media (max-width: 400px) { .area { white-space: normal; } .rank { width: 26px; } }
+  @media (max-width: 340px) { table { font-size: 13px; } .footer { font-size: 11px; } }
+</style>
+</head>
+<body>
+<figure class="fof-graphic" data-source-url="https://www.freeofficefinder.com/hub/research-reports/uk-office-rental-report-2026">
+  <p class="kicker">Office rental prices · London</p>
+  <h3 id="fof-title">The most expensive places in London to rent a desk</h3>
+  <div class="tabs" role="tablist" aria-label="Chart view" data-no-capture>
+    <button type="button" role="tab" id="fof-tab-rank" aria-controls="fof-panel-rank" aria-selected="true">Ranking</button>
+    <button type="button" role="tab" id="fof-tab-map" aria-controls="fof-panel-map" aria-selected="false" tabindex="-1">Map</button>
+  </div>
+  <div class="panel" id="fof-panel-rank" role="tabpanel" aria-labelledby="fof-tab-rank">
+  <label for="fof-search" style="position:absolute;left:-9999px">Find your area</label>
+  <input id="fof-search" class="search" type="search" placeholder="Find your area, e.g. Shoreditch" autocomplete="off" data-no-capture>
+  <div class="scroll">
+    <table id="fof-london">
+      <thead>
+        <tr>
+          <th data-key="rank" aria-sort="ascending"><button type="button">Rank</button></th>
+          <th data-key="area"><button type="button">Area</button></th>
+          <th data-key="price"><button type="button">Desk in a private office, a month</button></th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+    <div class="no-results" id="fof-none">No London area matches that search.</div>
+  </div>
+  <button type="button" class="tool-btn more" id="fof-more" aria-expanded="false" data-no-capture>Show all 61 areas</button>
+  <div class="footer">
+    <p><strong>How to read this:</strong> the average monthly price of one desk in a private office, October 2025 to September 2026. Darker bars mean more expensive. Tap or click a column heading to sort.</p>
+    <p><strong>Source:</strong> <a href="https://www.freeofficefinder.com/hub/research-reports/uk-office-rental-report-2026" target="_blank" rel="noopener">FreeOfficeFinder</a> price records. Watford and Borehamwood are included because FreeOfficeFinder groups them with London.</p>
+  </div>
+  </div>
+  <div class="panel" id="fof-panel-map" role="tabpanel" aria-labelledby="fof-tab-map" hidden>
+    <div class="paper">
+      <svg class="map" viewBox="0 0 760 586" role="group" aria-label="Map of London's 33 boroughs, shaded by how much official office rental values rose from 2021 to 2024">
+        <defs>
+          <filter id="fof-rough" x="-2%" y="-2%" width="104%" height="104%">
+            <feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="7" result="n"/>
+            <feDisplacementMap in="SourceGraphic" in2="n" scale="2.6" xChannelSelector="R" yChannelSelector="G"/>
+          </filter>
+          <marker id="fof-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M1,1 L9,5 L1,9" fill="none" stroke="#4A4036" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></marker>
+        </defs>
+        <g class="boroughs" filter="url(#fof-rough)">
+          <path class="borough" d="M630,201 626,196 624,189 626,183 615,183 605,188 596,179 592,178 594,177 592,167 596,149 595,139 591,134 576,147 577,151 573,152 574,159 580,162 576,167 578,174 576,181 566,186 565,192 568,193 561,195 563,198 560,201 557,201 544,211 543,206 530,214 521,213 520,225 525,235 543,240 545,253 549,256 549,260 557,261 576,255 602,265 607,238 630,201Z" data-name="Barking and Dagenham" data-pct="19.9" data-n="800"></path>
+          <path class="borough" d="M213,77 193,82 186,80 184,85 236,155 230,160 232,174 237,178 238,173 249,173 267,198 270,195 274,198 280,196 282,190 288,188 289,183 299,176 302,177 307,170 310,157 318,153 315,150 316,144 314,136 318,126 323,136 329,133 332,127 330,120 334,118 329,110 338,101 343,86 338,84 329,71 326,72 325,67 323,67 322,64 324,62 320,52 292,42 296,34 290,35 287,40 282,38 284,34 280,34 280,31 276,31 277,35 269,36 272,42 262,45 256,50 253,46 236,53 234,52 233,65 228,72 222,68 214,72 213,77Z" data-name="Barnet" data-pct="17.1" data-n="1990"></path>
+          <path class="borough" d="M580,256 572,255 566,258 568,262 571,311 566,308 560,316 557,312 551,314 548,313 533,326 534,336 530,336 536,340 538,360 534,359 535,361 527,370 526,376 534,378 543,391 556,402 561,403 576,400 593,410 597,409 598,406 594,404 595,396 598,395 595,392 600,377 607,381 615,360 618,361 625,357 633,347 642,344 642,337 649,332 650,323 647,319 650,313 654,311 655,306 661,303 651,298 635,300 626,299 621,293 617,276 612,269 580,256Z" data-name="Bexley" data-pct="16.8" data-n="550"></path>
+          <path class="borough" d="M236,155 219,132 198,142 203,146 205,154 185,152 165,164 169,177 163,180 164,187 157,196 173,202 182,211 182,215 185,220 183,230 187,231 205,222 209,227 208,229 199,232 207,236 219,234 227,226 240,232 248,230 265,237 266,232 277,230 282,237 287,225 256,182 248,172 238,173 237,178 232,174 230,160 236,155Z" data-name="Brent" data-pct="28.7" data-n="1720"></path>
+          <path class="borough" d="M452,487 462,520 465,544 469,543 467,552 473,578 476,579 482,564 489,556 497,564 499,569 498,577 505,575 510,578 512,582 536,577 541,571 534,558 536,558 536,543 554,527 562,527 566,524 569,518 564,507 566,503 572,500 583,503 582,500 588,493 590,476 594,467 596,468 594,460 597,454 594,451 594,435 592,432 606,433 599,416 593,410 578,401 561,403 556,402 543,391 534,378 527,376 516,387 512,386 497,365 487,358 485,366 482,368 482,370 485,369 487,376 493,374 494,386 492,390 482,380 467,389 462,397 461,395 459,399 455,401 454,399 450,402 440,398 440,392 432,385 418,390 392,384 387,399 394,404 394,409 398,417 405,423 412,420 414,425 411,429 421,437 426,439 426,455 433,455 435,452 438,472 452,487Z" data-name="Bromley" data-pct="16.5" data-n="1400"></path>
+          <path class="borough" d="M331,177 324,174 306,172 302,177 299,176 289,183 288,188 282,190 280,196 274,198 270,195 267,198 290,228 298,220 303,220 303,223 307,222 311,226 322,223 327,241 342,253 345,259 349,256 359,255 357,251 362,252 364,250 363,245 357,242 355,234 349,233 349,223 345,209 332,190 331,177Z" data-name="Camden" data-pct="22.0" data-n="9060"></path>
+          <path class="borough" d="M389,246 382,250 372,244 372,248 362,252 357,251 359,263 387,268 390,262 394,263 393,258 388,250 389,246Z" data-name="City of London" data-pct="11.2" data-n="12160"></path>
+          <path class="borough" d="M452,518 461,524 462,520 460,518 455,491 438,472 435,452 433,455 426,455 426,439 421,437 411,429 414,425 412,420 405,423 398,417 394,409 394,404 387,399 389,393 382,394 375,389 358,388 340,409 341,416 348,426 338,435 343,443 342,448 346,457 344,459 347,460 350,471 348,472 350,475 350,481 347,482 350,483 354,500 345,502 344,498 340,503 337,502 330,506 330,508 327,510 330,522 325,525 329,528 328,533 314,538 318,547 317,551 320,552 318,557 320,557 317,560 320,565 328,567 330,565 333,567 336,566 348,586 353,585 356,578 359,578 374,568 372,565 377,564 379,556 386,551 383,544 388,540 388,538 395,536 396,539 402,540 413,534 416,530 414,519 422,518 425,511 430,512 439,511 446,524 452,518Z" data-name="Croydon" data-pct="14.4" data-n="1750"></path>
+          <path class="borough" d="M120,198 104,208 100,208 104,216 82,219 84,224 89,228 121,236 121,241 115,252 108,257 105,267 96,272 93,278 111,285 120,282 125,291 133,283 144,279 151,283 167,283 172,286 175,283 179,289 184,285 184,283 192,285 189,278 195,275 202,276 207,273 216,286 230,285 232,277 230,271 238,271 239,268 232,242 239,232 237,229 227,226 217,234 204,236 199,232 208,229 209,227 205,222 187,231 183,230 185,220 182,215 183,212 164,198 146,191 121,201 120,198Z" data-name="Ealing" data-pct="21.2" data-n="2060"></path>
+          <path class="borough" d="M448,16 415,11 404,13 384,3 365,0 350,5 338,5 325,9 312,5 312,14 304,27 300,28 296,34 292,42 320,52 324,62 322,64 323,67 325,67 326,72 329,71 338,84 343,86 338,101 329,110 334,118 338,117 354,121 410,120 422,125 429,120 428,113 436,101 447,76 451,46 449,41 448,16Z" data-name="Enfield" data-pct="21.2" data-n="1090"></path>
+          <path class="borough" d="M527,377 527,370 535,361 534,359 538,360 536,340 530,336 534,336 533,326 548,313 551,314 557,312 560,316 566,308 571,311 568,262 566,258 541,262 528,278 519,282 482,283 475,280 466,269 459,269 455,276 459,290 458,295 450,300 438,296 437,299 436,304 439,307 444,306 439,313 442,321 446,324 447,317 459,318 476,315 473,316 474,322 471,321 471,325 468,328 470,340 475,342 477,347 473,350 479,351 479,360 485,362 487,358 495,363 510,384 515,388 525,376 527,377Z" data-name="Greenwich" data-pct="31.3" data-n="990"></path>
+          <path class="borough" d="M391,169 371,171 373,175 365,184 371,190 377,190 378,199 388,203 391,209 390,211 384,210 381,224 372,230 374,235 383,240 384,249 386,246 391,245 390,238 393,234 400,232 401,229 403,229 403,226 406,228 414,225 419,226 429,213 433,216 444,215 443,198 433,189 417,187 417,183 407,173 404,165 391,169Z" data-name="Hackney" data-pct="10.0" data-n="4650"></path>
+          <path class="borough" d="M254,233 248,230 238,230 239,232 232,242 238,271 230,271 235,282 239,280 238,292 240,295 248,292 254,297 257,312 264,323 276,329 288,329 295,324 299,310 294,310 267,276 263,269 265,264 262,264 254,247 255,242 254,233Z" data-name="Hammersmith and Fulham" data-pct="8.5" data-n="3590"></path>
+          <path class="borough" d="M410,120 354,121 338,117 330,120 331,128 329,133 323,136 319,125 314,136 316,144 315,150 318,153 310,157 305,173 315,172 331,178 341,171 352,168 365,184 373,175 371,171 391,169 404,165 404,161 412,151 411,147 414,138 422,125 410,120Z" data-name="Haringey" data-pct="14.6" data-n="1160"></path>
+          <path class="borough" d="M185,80 174,74 160,84 155,90 154,88 145,94 136,96 130,102 121,106 96,114 98,132 106,150 107,160 121,201 146,191 157,196 164,187 163,180 169,177 165,164 185,152 205,154 203,146 198,142 219,132 186,87 185,80Z" data-name="Harrow" data-pct="42.8" data-n="1620"></path>
+          <path class="borough" d="M608,236 602,265 610,267 615,272 620,291 624,297 632,300 649,298 652,283 666,278 663,268 677,266 673,250 680,250 676,246 678,242 681,243 683,236 685,236 688,252 697,252 699,244 698,231 727,226 727,223 730,221 760,219 758,211 755,211 754,204 743,194 741,182 721,184 717,171 704,149 702,134 688,130 692,123 697,120 687,108 661,87 643,96 627,96 627,98 622,96 611,102 584,99 592,115 594,129 592,138 595,139 595,156 592,161 592,168 594,177 592,178 596,179 605,188 615,183 626,183 624,189 626,196 630,201 608,236Z" data-name="Havering" data-pct="16.6" data-n="870"></path>
+          <path class="borough" d="M120,242 121,236 89,228 82,222 82,219 104,216 100,208 104,208 119,198 107,160 106,150 103,147 97,130 96,114 63,104 58,104 55,111 48,115 20,94 17,88 12,87 9,91 12,94 9,101 14,106 10,120 13,129 8,133 10,144 14,155 19,159 19,166 24,169 23,181 30,194 29,198 17,211 17,217 13,222 18,228 19,235 16,253 18,261 24,268 19,279 18,286 10,294 0,324 9,325 15,331 30,333 33,337 56,344 60,345 62,340 68,340 66,338 69,333 89,321 85,315 84,303 91,278 93,278 96,272 105,267 108,257 115,252 120,242Z" data-name="Hillingdon" data-pct="20.0" data-n="2550"></path>
+          <path class="borough" d="M119,282 111,285 91,277 84,303 85,315 89,321 69,333 66,338 68,340 62,340 60,345 46,341 44,351 48,351 48,367 58,364 56,371 64,372 63,378 73,380 75,377 82,375 94,389 107,390 106,388 112,392 114,389 110,380 121,371 119,369 129,362 124,359 118,360 110,350 114,350 124,339 139,338 146,340 153,336 156,343 162,338 165,340 165,333 168,328 171,327 173,319 183,313 192,298 197,296 208,301 218,318 227,319 233,314 234,301 240,295 238,292 239,280 235,282 232,275 230,285 218,286 215,285 207,273 201,276 195,275 189,278 192,285 184,283 184,285 179,289 175,283 172,286 167,283 151,283 144,279 133,283 125,291 119,282Z" data-name="Hounslow" data-pct="12.2" data-n="2040"></path>
+          <path class="borough" d="M371,190 356,175 352,168 341,171 331,178 332,190 345,209 349,223 349,233 355,234 357,242 363,245 364,251 372,248 372,244 382,250 383,240 374,235 372,230 381,224 384,210 390,211 390,208 388,203 378,199 377,190 371,190Z" data-name="Islington" data-pct="14.8" data-n="5420"></path>
+          <path class="borough" d="M265,239 254,234 254,247 262,264 265,264 263,269 267,276 294,310 299,310 306,304 324,300 319,292 317,274 310,279 298,281 297,275 294,275 290,263 286,263 284,256 280,256 276,248 279,248 278,244 274,240 265,239Z" data-name="Kensington and Chelsea" data-pct="19.3" data-n="2870"></path>
+          <path class="borough" d="M186,504 203,478 200,477 206,470 221,457 224,452 239,451 240,446 244,442 242,432 237,425 239,416 232,388 230,379 233,374 231,368 216,379 207,390 201,393 198,380 194,384 188,377 183,378 180,375 176,381 184,391 181,420 173,431 177,436 174,438 179,440 183,453 182,458 174,461 171,480 162,497 165,503 162,525 164,528 172,526 184,516 186,504Z" data-name="Kingston upon Thames" data-pct="10.7" data-n="1250"></path>
+          <path class="borough" d="M379,377 374,356 368,346 376,334 378,326 376,318 373,321 369,315 369,311 362,306 366,305 362,298 367,290 360,284 364,274 361,263 358,264 351,269 348,290 343,298 346,300 338,316 324,324 326,346 331,348 328,357 330,362 337,361 333,369 338,378 335,378 335,392 326,403 331,403 339,406 339,403 344,405 358,388 375,389 382,394 389,393 379,377Z" data-name="Lambeth" data-pct="11.3" data-n="2050"></path>
+          <path class="borough" d="M456,400 464,395 467,389 468,390 472,384 482,380 492,390 494,386 493,374 487,376 485,369 482,370 482,367 485,366 485,362 479,360 479,351 473,350 477,347 468,337 468,327 471,325 471,321 474,322 473,316 476,315 459,318 447,317 446,324 439,313 444,306 439,307 436,304 438,296 432,287 423,288 421,292 418,291 413,293 414,295 411,295 412,322 418,331 418,340 422,342 418,350 411,352 408,349 404,353 401,362 402,368 399,373 393,377 393,384 418,390 432,385 440,392 439,398 446,400 446,402 453,401 454,399 456,400Z" data-name="Lewisham" data-pct="20.1" data-n="750"></path>
+          <path class="borough" d="M333,394 329,396 316,389 314,393 311,393 296,386 292,374 288,377 287,374 288,362 268,367 251,367 233,375 230,379 239,416 237,425 242,431 244,438 248,436 249,440 263,451 270,439 279,444 285,440 290,443 302,432 310,439 314,440 329,436 332,437 342,432 348,426 340,412 344,404 339,403 339,406 331,403 326,403 333,394Z" data-name="Merton" data-pct="27.6" data-n="1270"></path>
+          <path class="borough" d="M520,225 519,197 517,195 513,195 505,185 497,189 501,198 482,199 480,195 475,200 472,198 469,199 468,203 465,204 464,202 452,205 450,201 442,203 445,216 440,224 444,232 453,239 451,248 454,253 457,251 463,255 462,262 466,257 465,263 468,265 466,270 476,280 484,284 519,282 528,278 540,262 549,260 549,256 545,253 543,240 536,240 530,235 525,235 520,225Z" data-name="Newham" data-pct="8.5" data-n="1580"></path>
+          <path class="borough" d="M544,211 557,201 560,201 563,198 561,195 568,193 565,192 566,186 576,181 578,174 576,167 580,162 574,159 573,152 577,151 576,147 593,134 594,129 592,115 588,106 582,99 567,111 564,108 553,115 550,114 548,110 542,113 545,117 543,124 539,126 531,123 525,126 503,114 504,109 508,109 508,106 496,110 478,91 472,106 467,105 474,108 479,115 471,134 470,143 471,156 475,165 474,172 476,174 476,182 472,183 473,192 478,196 480,195 482,199 501,198 497,189 505,185 513,195 517,195 519,197 521,213 530,214 543,206 544,211Z" data-name="Redbridge" data-pct="24.7" data-n="1370"></path>
+          <path class="borough" d="M120,361 124,359 129,362 119,369 121,371 110,380 114,389 112,392 106,388 111,393 112,401 108,401 109,406 118,411 136,405 153,418 164,434 172,433 181,419 184,391 176,381 178,378 180,375 183,378 188,377 194,384 198,380 201,393 207,390 220,375 241,361 237,351 226,343 227,335 232,328 249,330 250,317 258,320 260,317 256,311 255,298 249,293 242,294 235,300 231,316 224,320 216,315 210,303 205,298 195,296 183,313 173,319 171,327 168,328 165,333 165,340 162,338 156,343 153,336 146,340 138,338 122,340 114,350 110,350 112,354 120,361Z" data-name="Richmond upon Thames" data-pct="14.4" data-n="1470"></path>
+          <path class="borough" d="M387,268 361,263 364,274 359,283 367,290 362,298 366,305 362,306 369,311 369,315 373,321 376,318 378,326 376,334 368,344 369,349 374,356 384,389 389,392 393,384 393,377 399,373 402,368 401,362 404,353 408,349 411,352 418,350 422,342 418,340 418,331 412,322 411,295 414,295 413,293 418,291 421,292 423,288 432,287 433,273 432,269 425,265 419,266 406,275 387,268Z" data-name="Southwark" data-pct="9.8" data-n="4930"></path>
+          <path class="borough" d="M255,476 264,504 252,514 260,523 267,523 268,515 278,509 282,504 296,512 303,519 304,523 313,523 312,529 318,536 328,533 329,528 325,525 330,522 327,510 330,508 329,506 337,502 340,503 344,498 345,502 354,500 350,483 347,482 350,481 350,475 348,472 350,471 347,460 344,459 346,457 342,448 343,443 338,435 311,439 302,432 290,443 285,440 279,444 270,439 263,451 249,440 248,436 244,438 244,442 240,446 239,450 238,470 246,470 255,476Z" data-name="Sutton" data-pct="14.7" data-n="570"></path>
+          <path class="borough" d="M459,268 466,270 468,265 465,263 466,257 462,262 463,256 457,251 454,253 451,249 453,240 444,232 440,224 444,215 433,216 429,213 419,226 414,225 406,228 403,226 403,229 393,234 390,238 391,244 388,250 393,257 394,263 390,262 387,268 405,275 420,265 430,268 433,271 433,288 442,299 450,300 458,294 459,290 455,276 459,268Z" data-name="Tower Hamlets" data-pct="4.6" data-n="6290"></path>
+          <path class="borough" d="M472,106 482,83 480,73 461,73 459,70 452,70 453,66 448,66 446,82 428,114 429,120 422,124 414,138 411,147 412,151 403,162 407,173 417,183 417,187 434,190 443,198 444,203 450,201 452,205 462,202 464,204 468,203 469,199 472,198 475,200 479,198 472,189 472,183 476,182 477,176 474,172 475,165 470,144 471,134 479,115 474,108 467,105 472,106Z" data-name="Waltham Forest" data-pct="10.6" data-n="1110"></path>
+          <path class="borough" d="M329,396 335,392 335,378 338,378 333,369 337,361 330,362 328,356 331,348 326,346 323,327 324,324 338,316 346,300 343,298 303,305 299,310 295,324 288,329 275,328 266,324 260,317 258,320 251,317 249,330 232,328 229,331 226,343 237,351 242,360 231,368 233,375 251,367 268,367 288,362 287,374 288,377 292,374 296,386 311,393 314,393 316,389 329,396Z" data-name="Wandsworth" data-pct="13.5" data-n="1800"></path>
+          <path class="borough" d="M359,255 343,258 342,253 327,241 322,223 311,226 307,222 303,223 303,220 297,220 290,228 287,225 282,237 277,230 266,232 265,239 273,240 278,244 279,248 276,248 280,256 284,256 286,263 290,263 294,275 297,275 298,281 310,279 317,274 319,292 324,300 336,301 345,296 349,287 351,269 359,263 359,255Z" data-name="Westminster" data-pct="17.2" data-n="20620"></path>
+        </g>
+        <path class="thames" d="M156.0,417.7 C160.5,415.5 180.2,411.2 183.0,404.7 C185.8,398.2 175.9,386.8 173.1,378.6 C170.2,370.4 164.2,362.2 165.9,355.5 C167.6,348.8 178.7,344.2 183.0,338.2 C187.3,332.2 189.2,325.7 192.0,319.4 C194.8,313.1 194.8,302.5 200.1,300.6 C205.3,298.7 215.1,308.8 223.5,307.8 C231.9,306.8 244.1,293.4 250.5,294.8 C256.9,296.2 258.3,311.0 262.2,316.5 C266.1,322.0 268.9,327.3 273.9,328.0 C278.8,328.7 286.2,324.9 291.9,320.8 C297.6,316.7 301.2,307.1 308.1,303.5 C315.0,299.9 326.7,300.8 333.3,299.1 C339.9,297.4 345.0,297.2 347.7,293.3 C350.4,289.4 348.4,280.6 349.5,276.0 C350.6,271.4 351.0,267.8 354.0,265.9 C357.0,264.0 362.7,264.2 367.5,264.4 C372.3,264.6 378.3,266.3 382.8,267.3 C387.3,268.3 389.9,268.8 394.5,270.2 C399.1,271.6 405.3,276.5 410.7,276.0 C416.1,275.5 422.4,266.6 426.9,267.3 C431.4,268.0 434.1,275.5 437.7,280.3 C441.3,285.1 444.6,293.8 448.5,296.2 C452.4,298.6 458.2,298.4 461.1,294.8 C464.0,291.2 462.9,278.9 465.6,274.6 C468.3,270.3 471.2,268.1 477.3,268.8 C483.4,269.5 495.1,275.8 502.5,278.9 C509.9,282.0 514.8,290.0 521.4,287.6 C528.0,285.2 534.3,267.3 542.1,264.4 C549.9,261.5 558.8,265.6 568.2,270.2 C577.7,274.8 589.0,284.7 598.8,291.9 C608.5,299.1 617.7,307.6 626.7,313.6 C635.7,319.6 648.4,325.6 652.8,328.0" filter="url(#fof-rough)"/>
+        <text class="river-label" x="285" y="335">River Thames</text>
+        <g class="callouts" aria-hidden="true">
+          <text class="note" x="6" y="34">Harrow: up 42.8%,</text>
+          <text class="note" x="6" y="56">the fastest rise in London</text>
+          <path class="note-arrow" d="M120,64 C140,80 150,100 153,122" marker-end="url(#fof-arrow)"/>
+          <text class="note" x="752" y="30" text-anchor="end">Canary Wharf</text>
+          <text class="note" x="752" y="52" text-anchor="end">(Tower Hamlets): up 4.6%,</text>
+          <text class="note" x="752" y="74" text-anchor="end">the slowest rise</text>
+          <path class="note-arrow" d="M640,84 C560,140 470,200 440,276" marker-end="url(#fof-arrow)"/>
+          <text class="note" x="752" y="452" text-anchor="end">Greenwich: up 31.3%</text>
+          <path class="note-arrow" d="M650,432 C615,400 560,360 515,330" marker-end="url(#fof-arrow)"/>
+          <text class="note" x="6" y="520">Outer London: up 18.6%</text>
+          <text class="note" x="6" y="544">Inner London: up 14.0%</text>
+        </g>
+      </svg>
+      <div class="legend" aria-hidden="true">
+        <span class="ramp"></span>
+        <div class="legend-labels"><span>Slower rise</span><span>England &amp; Wales average (14.5%)</span><span>Faster rise</span></div>
+      </div>
+      <p class="info" id="fof-info" aria-live="polite">Tap a borough to see how much its official office rental values rose.</p>
+    </div>
+    <ul class="notes-list">
+      <li><strong>Harrow:</strong> up 42.8%, the fastest rise in London</li>
+      <li><strong>Greenwich:</strong> up 31.3%</li>
+      <li><strong>Canary Wharf (Tower Hamlets):</strong> up 4.6%, the slowest rise</li>
+      <li><strong>Outer London</strong> up 18.6%, against 14.0% in inner London</li>
+    </ul>
+  </div>
+  <div class="footer" id="fof-map-footer" hidden>
+    <p><strong>How to read this:</strong> the change in the government's official rental values for offices in each London borough (the figures used for business rates), April 2021 to April 2024. Coral areas rose faster than the England and Wales average (14.5%), teal areas slower. Tap a borough for its figure.</p>
+    <p><strong>Source:</strong> Valuation Office Agency, 2026 business rates revaluation, analysed by <a href="https://www.freeofficefinder.com/hub/research-reports/uk-office-rental-report-2026" target="_blank" rel="noopener">FreeOfficeFinder</a>. Inner and outer London follow the official ONS definitions.</p>
+  </div>
+  <div class="credit"><a href="https://www.freeofficefinder.com/hub/research-reports/uk-office-rental-report-2026" target="_blank" rel="noopener">FreeOfficeFinder</a></div>
+  <div class="tools" data-no-capture>
+    <button type="button" class="tool-btn" id="fof-embed-btn" aria-expanded="false" aria-controls="fof-embed-box">Embed this chart</button>
+    <button type="button" class="tool-btn" id="fof-download-btn">Download image</button>
+    <span class="status" id="fof-status" role="status" aria-live="polite"></span>
+  </div>
+  <div class="embed-box" id="fof-embed-box" data-no-capture>
+    <label for="fof-embed-code">Copy this code and paste it into your page. It shows whichever view you have open, ranking or map.</label>
+    <textarea id="fof-embed-code" readonly></textarea>
+    <div class="embed-row"><button type="button" class="tool-btn" id="fof-copy-btn">Copy code</button></div>
+  </div>
+</figure>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
+<script>
+window.addEventListener('DOMContentLoaded', function () {
+  // Table rows: [rank, area, monthly desk price (£), C = Central London / G = Greater London / O = just outside London]
+  var DATA = [[1,"Mayfair",971,"C"],[2,"Soho",890,"C"],[3,"St James's",847,"C"],[4,"Victoria",839,"C"],[5,"Monument",833,"C"],[6,"Bank",768,"C"],[7,"Marble Arch",749,"C"],[8,"Oxford Circus",747,"C"],[9,"Euston",734,"C"],[10,"London Bridge",713,"C"],[11,"Knightsbridge",710,"C"],[12,"Covent Garden",708,"C"],[13,"Cannon Street",689,"C"],[14,"King's Cross",681,"C"],[15,"Baker Street",672,"C"],[16,"Southwark",653,"C"],[17,"St Paul's",639,"C"],[18,"Tottenham Court Road",638,"C"],[19,"Piccadilly",625,"C"],[20,"Holborn",622,"C"],[21,"Moorgate",621,"C"],[22,"Westminster",617,"C"],[23,"Marylebone",594,"C"],[24,"Barbican",585,"C"],[25,"Paddington",582,"C"],[26,"Borough",582,"C"],[27,"Farringdon",573,"C"],[28,"Clerkenwell",567,"C"],[29,"Shoreditch",563,"C"],[30,"Canary Wharf",545,"C"],[31,"Chancery Lane",514,"C"],[32,"Kensington",510,"C"],[33,"Aldgate",510,"C"],[34,"Embankment",500,"C"],[34,"Russell Square",500,"C"],[36,"Old Street",490,"C"],[37,"Docklands",483,"C"],[38,"Liverpool Street",473,"C"],[39,"Hammersmith",463,"G"],[40,"Vauxhall",462,"C"],[41,"Angel",460,"C"],[42,"Chelsea",453,"G"],[43,"Waterloo",450,"C"],[44,"Camden",415,"G"],[45,"Islington",403,"G"],[46,"Fulham",379,"G"],[47,"Borehamwood",376,"O"],[47,"Richmond",376,"G"],[49,"Ealing",343,"G"],[50,"Hackney",328,"G"],[51,"Clapham",308,"G"],[52,"Uxbridge",306,"G"],[53,"Wimbledon",302,"G"],[54,"Finchley",299,"G"],[55,"Watford",295,"O"],[56,"Stratford",294,"G"],[57,"Park Royal",282,"G"],[58,"Heathrow",268,"G"],[59,"Croydon",243,"G"],[60,"Harrow",231,"G"],[61,"Enfield",215,"G"]];
+  var SECTION = { C: 'Central London', G: 'Greater London', O: 'Just outside London' };
+  var tbodyEl = document.querySelector('#fof-london tbody');
+  DATA.forEach(function (r) {
+    var tr = document.createElement('tr');
+    tr.dataset.rank = r[0]; tr.dataset.area = r[1]; tr.dataset.price = r[2];
+    tr.innerHTML = '<td class="rank">' + r[0] + '</td><td class="area"></td><td class="price"></td>';
+    tr.cells[1].textContent = r[1];
+    var sm = document.createElement('small'); sm.textContent = SECTION[r[3]]; tr.cells[1].appendChild(sm);
+    tbodyEl.appendChild(tr);
+  });
+  var fig = document.querySelector('.fof-graphic');
+  var sourceUrl = fig.getAttribute('data-source-url');
+  var table = document.getElementById('fof-london');
+  var tbody = table.tBodies[0];
+  var rows = Array.prototype.slice.call(tbody.rows);
+  var dark = [35, 96, 108], pale = [196, 216, 219], maxRank = 61, maxPrice = 1000, shown = 15;
+  var search = document.getElementById('fof-search');
+  var moreBtn = document.getElementById('fof-more');
+  var none = document.getElementById('fof-none');
+  var expanded = false;
+
+  // Price bars, shaded by rank: darkest at the top, lightest at the bottom.
+  rows.forEach(function (row) {
+    var d = row.dataset;
+    var t = (parseInt(d.rank, 10) - 1) / (maxRank - 1);
+    var c = dark.map(function (v, i) { return Math.round(v + (pale[i] - v) * t); });
+    row.cells[2].innerHTML = '<div class="bar-wrap"><span class="bar" style="width:calc((100% - 56px) * ' + (d.price / maxPrice).toFixed(3) + ');background:rgb(' + c.join(',') + ')"></span>' +
+      '<span class="price-val">£' + Number(d.price).toLocaleString('en-GB') + '</span></div>';
+  });
+
+  // Show the first 15 rows until "Show all" is pressed; a search always shows every match.
+  function refresh() {
+    var q = search.value.trim().toLowerCase();
+    var visible = 0;
+    Array.prototype.forEach.call(tbody.rows, function (row, i) {
+      var match = !q || row.dataset.area.toLowerCase().indexOf(q) !== -1;
+      var show = match && (q || expanded || i < shown);
+      row.classList.toggle('hidden', !show);
+      if (show) visible++;
+    });
+    none.style.display = visible ? 'none' : 'block';
+    moreBtn.style.display = q ? 'none' : 'block';
+    moreBtn.textContent = expanded ? 'Show top 15 only' : 'Show all 61 areas';
+    moreBtn.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+    postHeight();
+  }
+  search.addEventListener('input', refresh);
+  moreBtn.addEventListener('click', function () { expanded = !expanded; refresh(); });
+
+  // Tap or click a heading to sort; again to reverse.
+  var headers = table.tHead.rows[0].cells;
+  Array.prototype.forEach.call(headers, function (th) {
+    th.querySelector('button').addEventListener('click', function () {
+      var key = th.dataset.key;
+      var cur = th.getAttribute('aria-sort');
+      var dir = cur === 'ascending' ? 'descending' : cur === 'descending' ? 'ascending'
+              : (key === 'rank' || key === 'area') ? 'ascending' : 'descending';
+      Array.prototype.forEach.call(headers, function (h) { h.removeAttribute('aria-sort'); });
+      th.setAttribute('aria-sort', dir);
+      var sign = dir === 'ascending' ? 1 : -1;
+      rows.sort(function (a, b) {
+        var va = a.dataset[key], vb = b.dataset[key];
+        if (key === 'area') return sign * va.localeCompare(vb);
+        var diff = parseFloat(va) - parseFloat(vb);
+        return diff !== 0 ? sign * diff : a.dataset.area.localeCompare(b.dataset.area);
+      });
+      rows.forEach(function (row) { tbody.appendChild(row); });
+      refresh();
+    });
+  });
+
+  // ---------- Embed (opens on whichever view is showing) ----------
+  var status = document.getElementById('fof-status');
+  function say(msg) { status.textContent = msg; setTimeout(function () { if (status.textContent === msg) status.textContent = ''; }, 4000); }
+
+  var pageUrl = location.href.split('#')[0].split('?')[0];
+  function makeEmbed() {
+    var onMap = !panels[1].hidden;
+    return '<iframe src="' + pageUrl + (onMap ? '#map' : '') + '" title="Office rental prices in London – FreeOfficeFinder" ' +
+    'width="100%" height="1100" style="border:0;width:100%;max-width:760px;" loading="lazy" scrolling="no" data-fof-chart></iframe>\n' +
+    '<script>window.addEventListener("message",function(e){if(e.data&&e.data.fofChartHeight){document.querySelectorAll("iframe[data-fof-chart]").forEach(function(f){if(f.contentWindow===e.source)f.style.height=e.data.fofChartHeight+"px";});}});<\/script>\n' +
+    '<p style="font:12px Arial,sans-serif;color:#6B6B6B;">Source: <a href="' + sourceUrl + '">FreeOfficeFinder</a></p>';
+  }
+  var embedBox = document.getElementById('fof-embed-box');
+  var embedBtn = document.getElementById('fof-embed-btn');
+  var codeArea = document.getElementById('fof-embed-code');
+  embedBtn.addEventListener('click', function () {
+    var open = embedBox.classList.toggle('open');
+    embedBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    if (open) { codeArea.value = makeEmbed(); codeArea.focus(); codeArea.select(); }
+    postHeight();
+  });
+  document.getElementById('fof-copy-btn').addEventListener('click', function () {
+    codeArea.select();
+    var done = function () { say('Embed code copied'); };
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(codeArea.value).then(done, function () { document.execCommand('copy'); done(); });
+    } else { document.execCommand('copy'); done(); }
+  });
+
+  // When embedded, tell the host page how tall the chart is so the iframe fits with no scrollbar.
+  function postHeight() {
+    if (window.parent === window) return;
+    window.parent.postMessage({ fofChartHeight: document.documentElement.scrollHeight }, '*');
+  }
+  window.addEventListener('load', postHeight);
+  window.addEventListener('resize', postHeight);
+
+  // ---------- Download a PNG of whichever view is showing (without the buttons) ----------
+  var dlBtn = document.getElementById('fof-download-btn');
+  dlBtn.addEventListener('click', function () {
+    if (typeof html2canvas !== 'function') { say('Image tool did not load. Please try again.'); return; }
+    dlBtn.disabled = true; say('Preparing image…');
+    (document.fonts ? document.fonts.ready : Promise.resolve()).then(function () {
+      return html2canvas(fig, {
+        scale: 2, backgroundColor: '#ffffff', useCORS: true,
+        ignoreElements: function (el) { return el.hasAttribute && el.hasAttribute('data-no-capture'); }
+      });
+    }).then(function (canvas) {
+      canvas.toBlob(function (blob) {
+        var a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = panels[1].hidden ? 'freeofficefinder-london-areas-ranked.png' : 'freeofficefinder-london-rising-map.png';
+        document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
+        dlBtn.disabled = false; say('Image downloaded');
+      }, 'image/png');
+    }).catch(function () { dlBtn.disabled = false; say('Sorry, the image could not be created.'); });
+  });
+
+  // ---------- Tabs ----------
+  var title = document.getElementById('fof-title');
+  var tabs = [document.getElementById('fof-tab-rank'), document.getElementById('fof-tab-map')];
+  var panels = [document.getElementById('fof-panel-rank'), document.getElementById('fof-panel-map')];
+  var mapFooter = document.getElementById('fof-map-footer');
+  var titles = ['The most expensive places in London to rent a desk', 'Where London\u2019s office rental values are rising fastest'];
+  function selectTab(i) {
+    tabs.forEach(function (t, j) { t.setAttribute('aria-selected', i === j ? 'true' : 'false'); t.tabIndex = i === j ? 0 : -1; panels[j].hidden = i !== j; });
+    mapFooter.hidden = i !== 1;
+    title.textContent = titles[i];
+    if (embedBox.classList.contains('open')) codeArea.value = makeEmbed();
+    embedBtn.textContent = i === 1 ? 'Embed this map' : 'Embed this chart';
+    dlBtn.textContent = i === 1 ? 'Download map' : 'Download image';
+    postHeight();
+  }
+  tabs.forEach(function (t, i) {
+    t.addEventListener('click', function () { selectTab(i); });
+    t.addEventListener('keydown', function (e) {
+      if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') { var n = (i + 1) % 2; tabs[n].focus(); selectTab(n); }
+    });
+  });
+
+  // ---------- Storybook heat map ----------
+  // Two colours: teal = slower than the England and Wales rise (14.5%), coral = faster.
+  var stops = [[0, [35, 96, 108]], [7, [111, 160, 168]], [14.5, [238, 232, 216]], [22, [240, 170, 125]], [32, [214, 104, 60]], [45, [150, 52, 30]]];
+  function heat(p) {
+    p = Math.max(0, Math.min(45, p));
+    for (var i = 1; i < stops.length; i++) {
+      if (p <= stops[i][0]) {
+        var a = stops[i - 1], b = stops[i], t = (p - a[0]) / (b[0] - a[0]);
+        return 'rgb(' + a[1].map(function (v, k) { return Math.round(v + (b[1][k] - v) * t); }).join(',') + ')';
+      }
+    }
+  }
+  var info = document.getElementById('fof-info');
+  var boroughs = Array.prototype.slice.call(document.querySelectorAll('.borough'));
+  boroughs.forEach(function (el) {
+    el.setAttribute('tabindex', '0'); el.setAttribute('role', 'button');
+    el.setAttribute('aria-label', el.dataset.name + ': official rental values up ' + el.dataset.pct + '%');
+    el.setAttribute('fill', heat(parseFloat(el.dataset.pct)));
+    function pick() {
+      boroughs.forEach(function (b) { b.classList.remove('active'); });
+      el.classList.add('active');
+      el.parentNode.appendChild(el);
+      info.innerHTML = '<strong>' + el.dataset.name + ':</strong> official office rental values up ' + el.dataset.pct + '% (2021 to 2024), across ' + Number(el.dataset.n).toLocaleString('en-GB') + ' offices.';
+    }
+    el.addEventListener('click', pick);
+    el.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pick(); } });
+  });
+
+  refresh();
+  // Open on the map if the link ends in #map (used by the map's embed code).
+  if (/^#map$/i.test(location.hash) || /[?&]view=map/i.test(location.search)) selectTab(1);
+});
+</script>
+</body>
+</html>
