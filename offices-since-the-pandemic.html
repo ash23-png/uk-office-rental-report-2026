@@ -44,8 +44,8 @@
   .info { margin: 8px 2px 0; min-height: 1.5em; font-size: 14px; line-height: 1.4; color: var(--ink); }
   .info strong { font-weight: 600; }
   /* Chapter cards */
-  .chapters { list-style: none; margin: 16px 0 0; padding: 0; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; }
-  .chapter { position: relative; padding: 10px 10px 12px; background: #fff; border: 1px solid #EADFC9; border-radius: 10px; cursor: pointer; transition: border-color .15s, box-shadow .15s; }
+  .chapters { list-style: none; margin: 14px 0 0; padding: 0; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }
+  .chapter { position: relative; padding: 12px 12px 12px; background: #fff; border: 1px solid #EADFC9; border-radius: 10px; cursor: pointer; transition: border-color .15s, box-shadow .15s; }
   .chapter:hover, .chapter:focus-within, .chapter.active { border-color: var(--coral); box-shadow: 0 0 0 2px rgba(214,104,60,.18); }
   .chapter button { all: unset; display: block; width: 100%; cursor: pointer; }
   .txt { display: block; }
@@ -94,6 +94,9 @@
   .postcard:not(.inline) .pc-cap { white-space: nowrap; font-size: 17px; }
   .postcard.inline { position: relative; left: auto !important; top: auto !important; width: auto; min-width: 0; max-width: none; margin: 20px 0 2px; box-shadow: 0 4px 12px rgba(74,64,54,.12); transform: none; }
   .postcard.inline:not(.show) { display: none; }
+  .chapter p.story { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+  .pc-text { display: none; margin: 6px 2px 2px; font-family: Inter, -apple-system, "Segoe UI", Roboto, Arial, sans-serif; font-size: 13.5px; line-height: 1.45; color: var(--body); }
+  .postcard.inline .pc-text { display: block; }
   .chapter.peek { border-color: var(--coral); box-shadow: 0 0 0 2px rgba(214,104,60,.18); }
   .stop.peek circle { fill: var(--teal); }
   /* Play the story + draw-in */
@@ -110,7 +113,25 @@
   .stop.off { opacity: 0; pointer-events: none; }
   .notes { transition: opacity .3s; }
   .paper.playing .notes { opacity: 0; }
-  @media (max-width: 520px) { .info-row { flex-direction: column; align-items: flex-start; gap: 8px; } }
+  .pager { display: none; }
+  .pc-price { display: none; }
+  .swipe-hint { display: none; }
+  @media (max-width: 700px) {
+    .chapters { display: none; }
+    .info-row { flex-wrap: wrap; justify-content: space-between; gap: 10px; }
+    .info-row .info { order: -1; flex: 0 0 100%; font-size: 13px; color: var(--muted); min-height: 0; }
+    .info-row .info strong { color: var(--ink); }
+    .pager { display: flex; align-items: center; gap: 6px; }
+    .pager button { appearance: none; width: 32px; height: 32px; border-radius: 50%; border: 1.5px solid #E3D5BC; background: #fff; color: var(--pen); cursor: pointer;
+                    font-family: "Source Serif 4", Georgia, serif; font-size: 14px; font-weight: 700; padding: 0; transition: background .15s, border-color .15s, color .15s; }
+    .pager button.on { background: var(--teal); border-color: var(--teal); color: #fff; }
+    .pager button:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
+    .postcard.inline { margin: 18px 0 2px; pointer-events: auto; touch-action: pan-y; }
+    .postcard.inline .pc-cap { flex-wrap: wrap; row-gap: 4px; }
+    .postcard.inline .pc-price { display: inline-block; margin-left: 30px; padding: 2px 8px; border-radius: 999px; background: #F6E3D8; color: #8A3A1C;
+                                 font-family: Inter, -apple-system, "Segoe UI", Roboto, Arial, sans-serif; font-size: 12px; font-weight: 600; white-space: nowrap; }
+    .swipe-hint { display: block; margin: 6px 2px 0; font-size: 11.5px; color: var(--muted); }
+  }
   @media (prefers-reduced-motion: no-preference) {
     .postcard.show .steam { animation: fof-steam 2.4s ease-in-out infinite; }
     .postcard.show .rain { animation: fof-rain .9s linear infinite; }
@@ -177,10 +198,10 @@
       <g id="fof-stops"></g>
       <rect id="fof-hit" x="40" y="80" width="690" height="240" fill="transparent"></rect>
     </svg>
-    <div class="postcard" id="fof-postcard" aria-hidden="true" data-no-capture>
+    <div class="postcard" id="fof-postcard" aria-live="polite" data-no-capture>
       <span class="tape"></span>
       <!-- 1 Before the pandemic -->
-      <svg class="scene" viewBox="0 0 300 160"><g filter="url(#fof-rough-s)" stroke="#4A4036" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <svg class="scene" viewBox="0 0 300 160" aria-hidden="true"><g filter="url(#fof-rough-s)" stroke="#4A4036" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
         <rect width="300" height="160" fill="#FBF3E6" stroke="none"/>
         <rect y="120" width="300" height="40" fill="#EFE3CC" stroke="none"/><path d="M0 120h300" fill="none"/>
         <rect x="14" y="10" width="92" height="46" rx="3" fill="#CFE1E3"/>
@@ -205,7 +226,7 @@
         <circle cx="176" cy="48" r="1.3" fill="#4A4036" stroke="none"/><circle cx="183" cy="48" r="1.3" fill="#4A4036" stroke="none"/><circle cx="190" cy="48" r="1.3" fill="#4A4036" stroke="none"/>
       </g></svg>
       <!-- 2 Offices empty out -->
-      <svg class="scene" viewBox="0 0 300 160"><g filter="url(#fof-rough-s)" stroke="#4A4036" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <svg class="scene" viewBox="0 0 300 160" aria-hidden="true"><g filter="url(#fof-rough-s)" stroke="#4A4036" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
         <rect width="300" height="160" fill="#EDE5D6" stroke="none"/>
         <rect y="120" width="300" height="40" fill="#E1D5BE" stroke="none"/><path d="M0 120h300" fill="none"/>
         <rect x="14" y="12" width="92" height="58" rx="3" fill="#8FA9AE"/>
@@ -226,7 +247,7 @@
         <path d="M150 146l14-3 2 8-14 3z" fill="#fff" stroke-width="1"/>
       </g></svg>
       <!-- 3 The low point -->
-      <svg class="scene" viewBox="0 0 300 160"><g filter="url(#fof-rough-s)" stroke="#4A4036" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <svg class="scene" viewBox="0 0 300 160" aria-hidden="true"><g filter="url(#fof-rough-s)" stroke="#4A4036" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
         <rect width="300" height="160" fill="#E4EEEF" stroke="none"/>
         <rect y="128" width="300" height="32" fill="#E9E2D3" stroke="none"/><path d="M0 128h300" fill="none"/>
         <path d="M200 20c6-6 16-6 22 0 6-4 14 0 14 6h-40c0-2 2-5 4-6z" fill="#fff" stroke-width="1"/>
@@ -245,7 +266,7 @@
         <path d="M58 104c4-4 8-2 8 2-4 2-6 2-8-2z" fill="#D6683C" stroke-width="1"/><path d="M110 112c4-3 8 0 7 3-4 1-6 0-7-3z" fill="#F0AA7D" stroke-width="1"/>
       </g></svg>
       <!-- 4 Hybrid working -->
-      <svg class="scene" viewBox="0 0 300 160"><g filter="url(#fof-rough-s)" stroke="#4A4036" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <svg class="scene" viewBox="0 0 300 160" aria-hidden="true"><g filter="url(#fof-rough-s)" stroke="#4A4036" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
         <rect width="150" height="160" fill="#FBF3E6" stroke="none"/><rect x="150" width="150" height="160" fill="#F6E3D8" stroke="none"/>
         <rect y="124" width="300" height="36" fill="#EFE3CC" stroke="none"/><path d="M0 124h300" fill="none"/>
         <rect x="16" y="36" width="44" height="32" rx="2" fill="#CFE1E3"/><path d="M38 36v32" fill="none"/>
@@ -272,7 +293,7 @@
         <path d="M282 127l1-5 3 3M288 125l3-3v5" fill="#4A4036"/><path d="M262 144c-8 0-10-6-6-10" fill="none" stroke-width="2.2"/>
       </g></svg>
       <!-- 5 A scramble for the best space -->
-      <svg class="scene" viewBox="0 0 300 160"><g filter="url(#fof-rough-s)" stroke="#4A4036" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <svg class="scene" viewBox="0 0 300 160" aria-hidden="true"><g filter="url(#fof-rough-s)" stroke="#4A4036" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
         <rect width="300" height="160" fill="#E4EEEF" stroke="none"/>
         <rect y="128" width="300" height="32" fill="#E9E2D3" stroke="none"/><path d="M0 128h300" fill="none"/>
         <rect x="16" y="20" width="124" height="108" fill="#F6E3D8"/>
@@ -294,97 +315,60 @@
         <rect x="244" y="26" width="8" height="7" fill="#4A4036"/><path d="M282 54h8l-4 6z" fill="#D6683C"/>
         <path d="M240 128v-12M252 128v-12M264 128v-12M276 128v-12M288 128v-12M236 120h58" fill="none" stroke="#9C8F7B"/>
       </g></svg>
-      <p class="pc-cap"><span class="num" id="fof-pc-num">1</span><span id="fof-pc-text"></span></p>
+      <p class="pc-cap"><span class="num" id="fof-pc-num">1</span><span id="fof-pc-text"></span><span class="pc-price" id="fof-pc-price"></span></p>
+      <p class="pc-text" id="fof-pc-story"></p>
+      <span class="swipe-hint" aria-hidden="true">Swipe or tap a number for the next chapter</span>
     </div>
     <div class="info-row" id="fof-info-row">
       <button type="button" class="play-btn" id="fof-play" data-no-capture><span class="ico" aria-hidden="true"></span><span class="lbl">Play the story</span></button>
-      <p class="info" id="fof-info" aria-live="polite">Hover over the line or a chapter to see the story, and the price in each quarter.</p>
+      <div class="pager" id="fof-pager" role="group" aria-label="Chapters" data-no-capture>
+        <button type="button" aria-label="Chapter 1">1</button><button type="button" aria-label="Chapter 2">2</button><button type="button" aria-label="Chapter 3">3</button><button type="button" aria-label="Chapter 4">4</button><button type="button" aria-label="Chapter 5">5</button>
+      </div>
+      <p class="info" id="fof-info" aria-live="polite">Hover over the line or a chapter to explore the story.</p>
     </div>
   </div>
 
   <ol class="chapters" id="fof-chapters">
     <li class="chapter" data-i="0"><button type="button" aria-label="Chapter 1: early 2020, before the pandemic">
-      <svg class="pic" viewBox="0 0 150 96" aria-hidden="true"><g fill="none" stroke="#4A4036" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-        <rect x="6" y="6" width="138" height="84" rx="6" fill="#FDF9F1"/>
-        <path d="M20 66h110M20 66v16M130 66v16"/>
-        <rect x="28" y="48" width="18" height="13" fill="#CFE1E3"/><rect x="66" y="48" width="18" height="13" fill="#CFE1E3"/><rect x="104" y="48" width="18" height="13" fill="#CFE1E3"/>
-        <circle cx="37" cy="30" r="7" fill="#F0AA7D"/><path d="M27 48c0-8 4-11 10-11s10 3 10 11"/>
-        <circle cx="75" cy="30" r="7" fill="#F0AA7D"/><path d="M65 48c0-8 4-11 10-11s10 3 10 11"/>
-        <circle cx="113" cy="30" r="7" fill="#F0AA7D"/><path d="M103 48c0-8 4-11 10-11s10 3 10 11"/>
-      </g></svg>
       <div class="txt">
       <span class="when"><span class="num">1</span>Early 2020</span>
       <h4>Before the pandemic</h4>
-      <p>Offices are full. A desk in a private office costs about £285 a month across the UK.</p>
+      <p class="story">Offices are full, and a desk in a private office costs about £285 a month.</p>
       <span class="price-chip">£285 a month</span></div>
     </button></li>
     <li class="chapter" data-i="1"><button type="button" aria-label="Chapter 2: April 2020, offices empty out">
-      <svg class="pic" viewBox="0 0 150 96" aria-hidden="true"><g fill="none" stroke="#4A4036" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-        <rect x="6" y="6" width="138" height="84" rx="6" fill="#FDF9F1"/>
-        <path d="M20 66h110M20 66v16M130 66v16"/>
-        <rect x="28" y="48" width="18" height="13" fill="#E9E2D3"/><rect x="66" y="48" width="18" height="13" fill="#E9E2D3"/><rect x="104" y="48" width="18" height="13" fill="#E9E2D3"/>
-        <path d="M34 82v-8h10v8M72 82v-8h10v8M110 82v-8h10v8"/>
-        <path d="M58 12l-14 14M92 12l14 14"/><rect x="44" y="24" width="62" height="18" rx="3" fill="#F6E3D8"/>
-        <text x="75" y="37" text-anchor="middle" font-family="Caveat, cursive" font-size="15" font-weight="600" fill="#8A3A1C" stroke="none">CLOSED</text>
-      </g></svg>
       <div class="txt">
       <span class="when"><span class="num">2</span>April 2020</span>
       <h4>Offices empty out</h4>
-      <p>Almost half of people in work do some work from home, and desk prices start to fall.</p>
+      <p class="story">Almost half of people in work do some work from home, and desk prices start to fall.</p>
       <span class="price-chip">£273 a month</span></div>
     </button></li>
     <li class="chapter" data-i="2"><button type="button" aria-label="Chapter 3: spring 2021, the low point">
-      <svg class="pic" viewBox="0 0 150 96" aria-hidden="true"><g fill="none" stroke="#4A4036" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-        <rect x="6" y="6" width="138" height="84" rx="6" fill="#FDF9F1"/>
-        <path d="M28 22h64l14 18-14 18H28z" fill="#CFE1E3"/><circle cx="37" cy="40" r="3.5"/>
-        <text x="68" y="45.5" text-anchor="middle" font-family="Source Serif 4, Georgia, serif" font-size="15" font-weight="700" fill="#23606C" stroke="none">£255</text>
-        <path d="M118 22v48M108 60l10 12 10-12" stroke="#D6683C" stroke-width="2.4"/>
-      </g></svg>
       <div class="txt">
       <span class="when"><span class="num">3</span>Spring 2021</span>
       <h4>The low point</h4>
-      <p>A desk costs £255 a month, the lowest since FreeOfficeFinder's records began in 2015.</p>
+      <p class="story">A desk costs £255 a month, the lowest since FreeOfficeFinder's records began in 2015.</p>
       <span class="price-chip">£255 a month</span></div>
     </button></li>
     <li class="chapter" data-i="3"><button type="button" aria-label="Chapter 4: 2022 to 2025, hybrid working">
-      <svg class="pic" viewBox="0 0 150 96" aria-hidden="true"><g fill="none" stroke="#4A4036" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-        <rect x="6" y="6" width="138" height="84" rx="6" fill="#FDF9F1"/>
-        <path d="M14 66h56M14 66v16M70 66v16"/>
-        <rect x="20" y="48" width="16" height="13" fill="#CFE1E3"/><rect x="48" y="48" width="16" height="13" fill="#E9E2D3"/>
-        <circle cx="28" cy="31" r="6.5" fill="#F0AA7D"/><path d="M19 48c0-7 4-10 9-10s9 3 9 10"/>
-        <path d="M75 14v70" stroke-dasharray="3 4" stroke="#B9AB92"/>
-        <path d="M86 50l26-22 26 22M92 46v34h40V46" fill="#F6E3D8"/>
-        <rect x="100" y="64" width="22" height="3" rx="1" fill="#4A4036"/><path d="M103 64l2-10h14l2 10" fill="#CFE1E3"/>
-      </g></svg>
       <div class="txt">
       <span class="when"><span class="num">4</span>2022 to 2025</span>
       <h4>Hybrid working</h4>
-      <p>More than a quarter of working adults split their week, civil servants are called back for 60% of the time, and prices climb past where they started.</p>
+      <p class="story">More than a quarter of working adults split their week between home and the office, and prices climb past where they started.</p>
       <span class="price-chip">£301 a month in 2023</span></div>
     </button></li>
     <li class="chapter" data-i="4"><button type="button" aria-label="Chapter 5: 2026, a scramble for the best space">
-      <svg class="pic" viewBox="0 0 150 96" aria-hidden="true"><g fill="none" stroke="#4A4036" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-        <rect x="6" y="6" width="138" height="84" rx="6" fill="#FDF9F1"/>
-        <path d="M14 70h122M14 70v12M136 70v12"/>
-        <circle cx="26" cy="44" r="6.5" fill="#F0AA7D"/><path d="M17 62c0-7 4-10 9-10s9 3 9 10"/>
-        <circle cx="50" cy="44" r="6.5" fill="#F0AA7D"/><path d="M41 62c0-7 4-10 9-10s9 3 9 10"/>
-        <circle cx="74" cy="44" r="6.5" fill="#F0AA7D"/><path d="M65 62c0-7 4-10 9-10s9 3 9 10"/>
-        <circle cx="98" cy="44" r="6.5" fill="#F0AA7D"/><path d="M89 62c0-7 4-10 9-10s9 3 9 10"/>
-        <circle cx="122" cy="44" r="6.5" fill="#F0AA7D"/><path d="M113 62c0-7 4-10 9-10s9 3 9 10"/>
-        <rect x="52" y="12" width="46" height="18" rx="3" fill="#23606C" stroke="#23606C"/>
-        <text x="75" y="25" text-anchor="middle" font-family="Caveat, cursive" font-size="15" font-weight="600" fill="#fff" stroke="none">FULL</text>
-      </g></svg>
       <div class="txt">
       <span class="when"><span class="num">5</span>2026</span>
       <h4>A scramble for the best space</h4>
-      <p>Office attendance hits its highest level since the pandemic in February, almost nothing new is being built, and a desk costs more than before Covid.</p>
+      <p class="story">Office attendance hits its highest level since the pandemic, almost nothing new is being built, and a desk costs more than before Covid.</p>
       <span class="price-chip">About £317 a month</span></div>
     </button></li>
   </ol>
 
   <div class="footer">
-    <p><strong>How to read this:</strong> the line shows the UK average monthly price of one desk in a private office in each quarter, January 2020 to September 2026. Chapter 5 shows the average of the past year (October 2025 to September 2026). Prices are not adjusted for inflation.</p>
-    <p><strong>Sources:</strong> <a href="https://www.freeofficefinder.com/hub/research-reports/uk-office-rental-report-2026" target="_blank" rel="noopener">FreeOfficeFinder</a> price records; ONS (working from home and hybrid working); GOV.UK (civil service attendance); Remit Consulting (office attendance); Avison Young (new offices being built).</p>
+    <p><strong>How to read this:</strong> UK average monthly price of one desk in a private office, each quarter from January 2020 to September 2026, not adjusted for inflation. Chapter 5 is the average of the past year.</p>
+    <p><strong>Sources:</strong> <a href="https://www.freeofficefinder.com/hub/research-reports/uk-office-rental-report-2026" target="_blank" rel="noopener">FreeOfficeFinder</a> price records; ONS; Remit Consulting; Avison Young.</p>
   </div>
   <div class="credit"><a href="https://www.freeofficefinder.com/hub/research-reports/uk-office-rental-report-2026" target="_blank" rel="noopener">FreeOfficeFinder</a></div>
   <div class="tools" data-no-capture>
@@ -457,8 +441,13 @@ window.addEventListener('DOMContentLoaded', function () {
   var paper = document.querySelector('.paper'), postcard = document.getElementById('fof-postcard'), link = document.getElementById('fof-link');
   var scenes = Array.prototype.slice.call(postcard.querySelectorAll('.scene'));
   var HAND = ['A normal working week', 'Lights off, laptops go home', 'Prices hit the floor', 'Some days in, some days at home', 'Everyone wants the best desks'];
+  var STORY = cards.map(function (c) { return c.querySelector('.story').textContent; });
+  var WHEN = cards.map(function (c) { return c.querySelector('.when').textContent.replace(/^\d/, '').trim(); });
+  var PRICE = cards.map(function (c) { return c.querySelector('.price-chip').textContent; });
+  var pagerBtns = Array.prototype.slice.call(document.querySelectorAll('#fof-pager button'));
+  function tell(n) { info.innerHTML = '<strong>' + WHEN[n] + ':</strong> ' + STORY[n]; }
   function isMobile() { return window.matchMedia('(max-width: 700px)').matches; }
-  if (isMobile()) info.textContent = 'Tap a chapter or a number on the line to see its picture, or tap the line for the price in any quarter.';
+  if (isMobile()) info.textContent = 'Tap the line for the price in any quarter.';
   // Which chapter each quarter belongs to
   function chapterOf(i) { return i === 0 ? 0 : i <= 4 ? 1 : i <= 7 ? 2 : i <= 22 ? 3 : 4; }
 
@@ -477,6 +466,7 @@ window.addEventListener('DOMContentLoaded', function () {
   function mark(n) {
     stopEls.forEach(function (s, k) { s.classList.toggle('peek', k === n); });
     cards.forEach(function (c, k) { c.classList.toggle('peek', k === n); });
+    pagerBtns.forEach(function (b, k) { b.classList.toggle('on', k === n); b.setAttribute('aria-pressed', k === n ? 'true' : 'false'); });
   }
   function drawLink(n) {
     var sr = svg.getBoundingClientRect(), pr = postcard.getBoundingClientRect(), s = 760 / sr.width;
@@ -491,11 +481,10 @@ window.addEventListener('DOMContentLoaded', function () {
     scenes.forEach(function (sc, k) { sc.classList.toggle('on', k === n); });
     document.getElementById('fof-pc-num').textContent = n + 1;
     document.getElementById('fof-pc-text').textContent = HAND[n];
-    if (isMobile() && playing) {
-      if (postcard.parentNode !== paper || postcard.nextElementSibling !== svg) paper.insertBefore(postcard, svg);
-      postcard.classList.add('inline'); link.setAttribute('visibility', 'hidden'); paper.classList.remove('story-on');
-    } else if (isMobile()) {
-      if (postcard.parentNode !== cards[n]) cards[n].appendChild(postcard);
+    document.getElementById('fof-pc-story').textContent = STORY[n];
+    document.getElementById('fof-pc-price').textContent = WHEN[n] + ' · ' + PRICE[n];
+    if (isMobile()) {
+      if (postcard.parentNode !== paper || postcard.previousElementSibling !== infoRow) paper.appendChild(postcard);
       postcard.classList.add('inline'); link.setAttribute('visibility', 'hidden'); paper.classList.remove('story-on');
     } else {
       if (postcard.parentNode !== paper || postcard.nextElementSibling !== infoRow) paper.insertBefore(postcard, infoRow);
@@ -510,36 +499,35 @@ window.addEventListener('DOMContentLoaded', function () {
     mark(n); postHeight();
   }
   function hide() {
+    if (isMobile()) return; // on phones one chapter is always showing
     shown = null; postcard.classList.remove('show'); link.setAttribute('visibility', 'hidden');
     paper.classList.remove('story-on'); mark(-1); postHeight();
   }
   function preview(n) { if (isMobile() || playing) return; clearTimeout(leaveTimer); if (shown !== n) show(n); }
   function unpreview() {
-    if (playing) return;
+    if (playing || isMobile()) return;
     clearTimeout(leaveTimer);
     leaveTimer = setTimeout(function () { if (pinned !== null) show(pinned); else hide(); }, 150);
   }
   function choose(n, scroll) {
     if (playing) stopPlay(false);
     clearTimeout(leaveTimer);
-    if (isMobile() && pinned === n) { pinned = null; stopEls.forEach(function (s) { s.classList.remove('active'); }); cards.forEach(function (c) { c.classList.remove('active'); }); hide(); return; }
     pinned = n;
     stopEls.forEach(function (s, k) { s.classList.toggle('active', k === n); });
     cards.forEach(function (c, k) { c.classList.toggle('active', k === n); });
-    showCursor(STOPS[n]); show(n);
-    if (scroll && isMobile()) cards[n].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    showCursor(STOPS[n]); show(n); tell(n);
   }
   cards.forEach(function (c, n) {
     var b = c.querySelector('button');
     b.addEventListener('click', function () { choose(n, false); });
-    c.addEventListener('mouseenter', function () { if (!isMobile()) { showCursor(STOPS[n]); preview(n); } });
+    c.addEventListener('mouseenter', function () { if (!isMobile() && !playing) { showCursor(STOPS[n]); preview(n); tell(n); } });
     c.addEventListener('mouseleave', unpreview);
-    b.addEventListener('focus', function () { if (!isMobile()) { showCursor(STOPS[n]); preview(n); } });
+    b.addEventListener('focus', function () { if (!isMobile() && !playing) { showCursor(STOPS[n]); preview(n); tell(n); } });
     b.addEventListener('blur', unpreview);
   });
   stopEls.forEach(function (g, n) {
-    g.addEventListener('pointerenter', function () { showCursor(STOPS[n]); preview(n); });
-    g.addEventListener('focus', function () { showCursor(STOPS[n]); preview(n); });
+    g.addEventListener('pointerenter', function () { if (playing) return; showCursor(STOPS[n]); preview(n); tell(n); });
+    g.addEventListener('focus', function () { if (playing) return; showCursor(STOPS[n]); preview(n); tell(n); });
     g.addEventListener('blur', unpreview);
   });
 
@@ -556,10 +544,26 @@ window.addEventListener('DOMContentLoaded', function () {
     return Math.max(0, Math.min(DATA.length - 1, i));
   }
   sizeStops();
-  window.addEventListener('resize', function () { sizeStops(); if (shown !== null) show(shown); });
+  window.addEventListener('resize', function () {
+    sizeStops();
+    if (isMobile()) show(shown !== null ? shown : (pinned !== null ? pinned : 0));
+    else if (shown !== null) { if (pinned === null && !playing && postcard.classList.contains('inline')) hide(); else show(shown); }
+  });
+  // Phones: chapter numbers and swiping
+  pagerBtns.forEach(function (b, n) { b.addEventListener('click', function () { choose(n, false); }); });
+  var sx0 = null, sy0 = null;
+  postcard.addEventListener('touchstart', function (e) { var t = e.touches[0]; sx0 = t.clientX; sy0 = t.clientY; }, { passive: true });
+  postcard.addEventListener('touchend', function (e) {
+    if (sx0 === null || !isMobile()) return;
+    var t = e.changedTouches[0], dx = t.clientX - sx0, dy = t.clientY - sy0; sx0 = null;
+    if (Math.abs(dx) < 40 || Math.abs(dx) < Math.abs(dy)) return;
+    var cur = shown !== null ? shown : 0, next = Math.max(0, Math.min(4, cur + (dx < 0 ? 1 : -1)));
+    if (next !== cur) choose(next, false);
+  });
+  if (isMobile()) { pinned = 0; show(0); }
   var hit = document.getElementById('fof-hit');
   hit.addEventListener('pointermove', function (e) { if (playing) return; var i = fromEvent(e); showCursor(i); preview(chapterOf(i)); });
-  hit.addEventListener('pointerdown', function (e) { if (playing) return; var i = fromEvent(e); showCursor(i); preview(chapterOf(i)); });
+  hit.addEventListener('pointerdown', function (e) { if (playing) return; var i = fromEvent(e); showCursor(i); if (isMobile()) { pinned = chapterOf(i); show(pinned); } else preview(chapterOf(i)); });
   svg.addEventListener('pointerleave', unpreview);
   svg.insertBefore(hit, stopsG); // keep stops clickable above the hit area
 
@@ -571,18 +575,23 @@ window.addEventListener('DOMContentLoaded', function () {
     revealX = xv; revealRect.setAttribute('width', Math.max(0, xv));
     stopEls.forEach(function (g, n) { g.classList.toggle('off', pts[STOPS[n]][0] > xv + 1); });
   }
+  var animId = 0;
   function animateReveal(to, ms, follow, done) {
     cancelAnimationFrame(raf);
-    var from = revealX, t0 = null, last = -1;
-    if (calm || ms <= 0) { setReveal(to); if (done) done(); return; }
+    var id = ++animId, from = revealX, t0 = null, last = -1, ended = false;
+    function end() { if (ended || id !== animId) return; ended = true; cancelAnimationFrame(raf); setReveal(to); if (done) done(); }
+    if (calm || ms <= 0) { end(); return; }
     function frame(t) {
+      if (id !== animId || ended) return;
       if (t0 === null) t0 = t;
       var k = Math.min(1, (t - t0) / ms), e = k < .5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2;
       var xv = from + (to - from) * e; setReveal(xv);
       if (follow) { var i = Math.max(0, Math.min(DATA.length - 1, Math.floor((xv - X0) / (X1 - X0) * (DATA.length - 1) + 0.001))); if (i !== last) { last = i; showCursor(i); } }
-      if (k < 1) raf = requestAnimationFrame(frame); else if (done) done();
+      if (k < 1) raf = requestAnimationFrame(frame); else end();
     }
     raf = requestAnimationFrame(frame);
+    // Safety net: if the browser pauses animation (e.g. a background tab), finish the line anyway
+    setTimeout(end, ms + 1200);
   }
   function setPlayBtn(state) {
     playBtn.classList.toggle('is-playing', state === 'playing');
@@ -592,12 +601,12 @@ window.addEventListener('DOMContentLoaded', function () {
     var target = pts[STOPS[n]][0] + (n === 4 ? 40 : 1);
     animateReveal(target, n === 0 ? 500 : 1300, true, function () {
       if (!playing) return;
-      showCursor(STOPS[n]); show(n);
+      showCursor(STOPS[n]); show(n); tell(n);
       playTimer = setTimeout(function () { if (!playing) return; if (n < 4) step(n + 1); else finishPlay(); }, n === 4 ? 3600 : 3200);
     });
   }
   function startPlay() {
-    clearTimeout(leaveTimer); clearTimeout(playTimer); cancelAnimationFrame(raf);
+    clearTimeout(leaveTimer); clearTimeout(playTimer); cancelAnimationFrame(raf); animId++;
     playing = true; pinned = null; setPlayBtn('playing');
     stopEls.forEach(function (s) { s.classList.remove('active'); }); cards.forEach(function (c) { c.classList.remove('active'); });
     hide(); paper.classList.add('playing');
@@ -606,10 +615,10 @@ window.addEventListener('DOMContentLoaded', function () {
   }
   function finishPlay() {
     playing = false; paper.classList.remove('playing'); setReveal(760); setPlayBtn('again');
-    if (!isMobile()) { pinned = 4; stopEls[4].classList.add('active'); cards[4].classList.add('active'); show(4); }
+    pinned = 4; stopEls[4].classList.add('active'); cards[4].classList.add('active'); show(4);
   }
   function stopPlay(hideCard) {
-    playing = false; clearTimeout(playTimer); cancelAnimationFrame(raf);
+    playing = false; clearTimeout(playTimer); cancelAnimationFrame(raf); animId++;
     paper.classList.remove('playing'); setReveal(760); setPlayBtn('again');
     if (hideCard) hide();
   }
