@@ -125,7 +125,7 @@
   </div>
   <button type="button" class="tool-btn more" id="fof-more" aria-expanded="false" data-no-capture>Show all 61 areas</button>
   <div class="footer">
-    <p><strong>How to read this:</strong> the average monthly price of one desk in a private office, October 2025 to September 2026. Darker bars mean more expensive. Tap or click a column heading to sort.</p>
+    <p><strong>How to read this:</strong> the average monthly price of one desk in a private office, October 2025 to September 2026. Darker bars mean more expensive.<span data-no-capture> Tap or click a column heading to sort.</span></p>
     <p><strong>Source:</strong> <a href="https://www.freeofficefinder.com/hub/research-reports/uk-office-rental-report-2026" target="_blank" rel="noopener">FreeOfficeFinder</a> price records. Watford and Borehamwood are included because FreeOfficeFinder groups them with London.</p>
   </div>
   </div>
@@ -197,7 +197,7 @@
         <span class="ramp"></span>
         <div class="legend-labels"><span>Slower rise</span><span>England &amp; Wales average (14.5%)</span><span>Faster rise</span></div>
       </div>
-      <p class="info" id="fof-info" aria-live="polite">Tap a borough to see how much its official office rental values rose.</p>
+      <p class="info" id="fof-info" aria-live="polite"><span data-no-capture>Tap a borough to see how much its official office rental values rose.</span></p>
     </div>
     <ul class="notes-list">
       <li><strong>Harrow:</strong> up 42.8%, the fastest rise in London</li>
@@ -207,7 +207,7 @@
     </ul>
   </div>
   <div class="footer" id="fof-map-footer" hidden>
-    <p><strong>How to read this:</strong> the change in the government's official rental values for offices in each London borough (the figures used for business rates), April 2021 to April 2024. Coral areas rose faster than the England and Wales average (14.5%), teal areas slower. Tap a borough for its figure.</p>
+    <p><strong>How to read this:</strong> the change in the government's official rental values for offices in each London borough (the figures used for business rates), April 2021 to April 2024. Coral areas rose faster than the England and Wales average (14.5%), teal areas slower.<span data-no-capture> Tap a borough for its figure.</span></p>
     <p><strong>Source:</strong> Valuation Office Agency, 2026 business rates revaluation, analysed by <a href="https://www.freeofficefinder.com/hub/research-reports/uk-office-rental-report-2026" target="_blank" rel="noopener">FreeOfficeFinder</a>. Inner and outer London follow the official ONS definitions.</p>
   </div>
   <div class="credit"><a href="https://www.freeofficefinder.com/hub/research-reports/uk-office-rental-report-2026" target="_blank" rel="noopener">FreeOfficeFinder</a></div>
@@ -328,10 +328,15 @@ window.addEventListener('DOMContentLoaded', function () {
   });
 
   // When embedded, tell the host page how tall the chart is so the iframe fits with no scrollbar.
+  // Tell the page the chart's real height (measured from the chart itself, so it can shrink as well as grow)
   function postHeight() {
     if (window.parent === window) return;
-    window.parent.postMessage({ fofChartHeight: document.documentElement.scrollHeight }, '*');
+    var g = document.querySelector('.fof-graphic');
+    var h = g ? Math.ceil(g.getBoundingClientRect().height) : document.body.scrollHeight;
+    window.parent.postMessage({ fofChartHeight: h }, '*');
   }
+  if (window.ResizeObserver && document.querySelector('.fof-graphic')) new ResizeObserver(postHeight).observe(document.querySelector('.fof-graphic'));
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(postHeight);
   window.addEventListener('load', postHeight);
   window.addEventListener('resize', postHeight);
 
