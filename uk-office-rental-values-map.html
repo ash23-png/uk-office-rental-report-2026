@@ -67,17 +67,13 @@
   .notes-list li { margin: 0 0 4px; }
   .notes-list strong { font-weight: 600; }
   /* Cities by region */
-  .cities { margin: 18px 0 0; }
-  .cities h4 { margin: 0 0 4px; font-family: "Source Serif 4", Georgia, serif; font-size: 18px; color: var(--ink); }
-  .cities .hint { margin: 0 0 8px; font-size: 12px; color: var(--muted); }
-  .cgroup { display: grid; grid-template-columns: 150px 1fr; gap: 10px; align-items: start; padding: 10px 0; border-bottom: 1px solid var(--rule); font-size: 14px; }
-  .cgroup > span { display: inline-flex; align-items: center; gap: 7px; font-weight: 600; color: var(--ink); padding-top: 5px; }
-  .cgroup > span i { display: inline-block; width: 12px; height: 12px; border-radius: 50%; }
-  .cgroup > span small { font-weight: 400; color: var(--muted); font-size: 12px; }
-  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
-  .chip { appearance: none; font: inherit; font-size: 13px; color: var(--ink); background: #fff; border: 1px solid #DDD3C0; border-radius: 999px; padding: 5px 11px; cursor: pointer; }
-  @media (hover: hover) { .chip:hover { border-color: var(--teal); background: #F4F8F8; } }
-  .chip.on { border-color: var(--teal); background: #F4F8F8; color: var(--teal); }
+  .cities { margin: 12px 0 0; }
+  .cflow { margin: 0; font-size: 12px; line-height: 1.9; color: var(--body); }
+  .clabel { font-size: 10.5px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--teal); margin-right: 8px; white-space: nowrap; }
+  .chip { appearance: none; font: inherit; color: var(--body); background: none; border: 0; padding: 0; margin: 0 7px 0 0; cursor: pointer; white-space: nowrap; display: inline-flex; align-items: center; gap: 4px; }
+  .chip i { display: inline-block; width: 7px; height: 7px; border-radius: 50%; }
+  @media (hover: hover) { .chip:hover { color: var(--teal); text-decoration: underline; text-underline-offset: 2px; } }
+  .chip.on { color: var(--teal); font-weight: 600; }
   .chip:focus-visible { outline: 2px solid var(--teal); outline-offset: 1px; }
   .footer { margin-top: 14px; font-size: 12px; line-height: 1.55; color: var(--muted); }
   .footer p { margin: 0 0 6px; }
@@ -98,7 +94,7 @@
   .embed-row { margin-top: 8px; }
   .status { font-size: 12px; color: var(--teal); }
   @media (max-width: 600px) { .callouts { display: none; } .notes-list { display: block; } }
-  @media (max-width: 480px) { .fof-graphic { padding: 20px 16px; } .paper { padding: 0 0 10px; } .cgroup { grid-template-columns: 1fr; gap: 6px; } .cgroup > span { padding-top: 0; } }
+  @media (max-width: 480px) { .fof-graphic { padding: 20px 16px; } .paper { padding: 0 0 10px; } }
 </style>
 </head>
 <body>
@@ -532,7 +528,7 @@
       <button type="button" class="kbtn" data-band="falling" aria-pressed="false"><b style="background:#8DB0B7"></b>Fall</button>
       <span><b style="background:#E4DED1"></b>Northern Ireland (not covered)</span>
     </div>
-    <p class="key-note">Scotland is measured over a different period (2022 to 2025), so compare its areas with each other rather than with England and Wales.</p>
+    <p class="key-note">Scotland covers a different period, so compare its areas with each other.</p>
     <p class="info" id="fof-info" aria-live="polite"><span data-no-capture>Tap a city or search for your area.</span></p>
   </div>
   <ul class="notes-list">
@@ -543,12 +539,10 @@
     <li><strong>Aberdeen:</strong> the only fall, with 18.4% of offices empty</li>
   </ul>
   <div class="cities">
-    <h4>Our 19 cities</h4>
-    <p class="hint" data-no-capture>Tap a city to find it on the map</p>
     <div id="fof-cities"></div>
   </div>
   <div class="footer">
-    <p>Official rental values: 2026 business rates revaluations (England and Wales: rents in April 2024 vs April 2021. Scotland: April 2025 vs April 2022, so it isn't compared). Sources: Valuation Office Agency, Scottish Government, Remit Consulting, analysed by <a href="https://www.freeofficefinder.com/hub/research-reports/uk-office-rental-report-2026" target="_blank" rel="noopener">FreeOfficeFinder</a>. Boundaries: ONS, © Crown copyright 2022.</p>
+    <p>Official office rental values from the 2026 business rates revaluations: April 2021 to April 2024 for England and Wales, April 2022 to April 2025 for Scotland. <strong>Sources:</strong> Valuation Office Agency, Scottish Government, Remit Consulting. Boundaries: ONS, © Crown copyright 2022.</p>
   </div>
   <div class="credit"><a href="https://www.freeofficefinder.com/hub/research-reports/uk-office-rental-report-2026" target="_blank" rel="noopener">FreeOfficeFinder</a></div>
   <div class="tools" data-no-capture>
@@ -678,7 +672,9 @@ window.addEventListener('DOMContentLoaded', function () {
       if (y - fs < target[1]) txt.setAttribute('y', b.y + b.height + fs * 1.1);
     }, 30);
   }
-  function pick(el, quietPin) {
+  function pick(el, quietPin, fromSearch) {
+    // Tap the selected area again to deselect it
+    if (!fromSearch && el.classList.contains('active')) { selectRegion(currentRegion); return; }
     if (currentRegion !== el.dataset.r) selectRegion(el.dataset.r, true);
     las.forEach(function (b) { b.classList.remove('active'); if (b.dataset.r === el.dataset.r) b.style.opacity = b === el ? 1 : 0.45; });
     dots.forEach(function (d) { d.classList.remove('active'); });
@@ -690,6 +686,7 @@ window.addEventListener('DOMContentLoaded', function () {
   }
   function why(d) { return d.dataset.story ? '<span class="why"><b>What\'s happening:</b> ' + d.dataset.story + '</span>' : ''; }
   function pickCity(d) {
+    if (d.classList.contains('active')) { selectRegion(currentRegion); return; }
     var name = d.dataset.place, cat = CAT[d.dataset.cat][0].toLowerCase();
     if (d.dataset.london) {
       selectRegion('London', true);
@@ -715,17 +712,18 @@ window.addEventListener('DOMContentLoaded', function () {
     if (dotByName[v] && (dotByName[v].dataset.r === 'Scotland' || dotByName[v].dataset.london)) { pickCity(dotByName[v]); return; }
     var el = byName[v];
     if (!el) { var keys = Object.keys(byName).filter(function (k) { return k.indexOf(v) === 0; }); if (keys.length === 1) el = byName[keys[0]]; }
-    if (el) pick(el);
+    if (el) pick(el, false, true);
   });
 
   // ---------- Cities grouped by the study's labels ----------
   var box = document.getElementById('fof-cities'), h = '';
-  [['fast', '20%+'], ['rising', '10–20%'], ['steady', '0–10%'], ['falling', '']].forEach(function (g) {
-    var names = dots.filter(function (d) { return d.dataset.cat === g[0]; }).map(function (d) { return d.dataset.place; }).sort();
-    h += '<div class="cgroup"><span><i style="background:' + CAT[g[0]][1] + '"></i>' + CAT[g[0]][0] + (g[1] ? ' <small>' + g[1] + '</small>' : '') + '</span><div class="chips">';
-    names.forEach(function (n) { h += '<button type="button" class="chip" data-place="' + n + '">' + n + '</button>'; });
-    h += '</div></div>';
+  h = '<p class="cflow"><span class="clabel">Our cities</span>';
+  ['fast', 'rising', 'steady', 'falling'].forEach(function (cat) {
+    dots.filter(function (d) { return d.dataset.cat === cat; }).map(function (d) { return d.dataset.place; }).sort().forEach(function (n) {
+      h += '<button type="button" class="chip" data-place="' + n + '" title="' + CAT[cat][0] + '"><i style="background:' + CAT[cat][1] + '"></i>' + n + '</button>';
+    });
   });
+  h += '</p>';
   box.innerHTML = h;
   var chips = Array.prototype.slice.call(box.querySelectorAll('.chip'));
   chips.forEach(function (c) { c.addEventListener('click', function () { pickCity(dotByName[c.dataset.place.toLowerCase()]); mapEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }); });
@@ -796,6 +794,25 @@ window.addEventListener('DOMContentLoaded', function () {
     } else { document.execCommand('copy'); done(); }
   });
   // Tell the page the chart's real height (measured from the chart itself, so it can shrink as well as grow)
+  // Downloads: the picture tool can't see web fonts inside the map drawing, so we hand them over directly
+  function fofFontCSS() {
+    var url = 'https://fonts.googleapis.com/css2?family=Caveat:wght@600&family=Inter:wght@500;600;700&display=swap';
+    return fetch(url).then(function (r) { return r.text(); }).then(function (css) {
+      var blocks = css.split('/* ').filter(function (b) { return b.indexOf('latin */') === 0; }).map(function (b) { return b.slice(b.indexOf('@font-face')); });
+      return Promise.all(blocks.map(function (b) {
+        var m = b.match(/url\((https:[^)]+)\)/); if (!m) return b;
+        return fetch(m[1]).then(function (r) { return r.blob(); }).then(function (blob) {
+          return new Promise(function (res) { var fr = new FileReader(); fr.onload = function () { res(b.replace(m[1], fr.result)); }; fr.readAsDataURL(blob); });
+        });
+      })).then(function (parts) { return parts.join('\n'); });
+    }).catch(function () { return ''; });
+  }
+  function fofEmbedFonts(doc, css) {
+    if (!css) return;
+    Array.prototype.forEach.call(doc.querySelectorAll('svg'), function (svg) {
+      var st = doc.createElementNS('http://www.w3.org/2000/svg', 'style'); st.textContent = css; svg.insertBefore(st, svg.firstChild);
+    });
+  }
   function postHeight() {
     if (window.parent === window) return;
     var g = document.querySelector('.fof-graphic');
@@ -810,25 +827,54 @@ window.addEventListener('DOMContentLoaded', function () {
 
   // ---------- Download a PNG (without the buttons) ----------
   var dlBtn = document.getElementById('fof-download-btn');
+  function makeCanvas() {
+    return (document.fonts ? document.fonts.ready : Promise.resolve()).then(fofFontCSS).then(function (fontCSS) {
+      return html2canvas(fig, {
+        scale: 2, backgroundColor: '#ffffff', useCORS: true,
+        onclone: function (doc) { fofEmbedFonts(doc, fontCSS); },
+        ignoreElements: function (e) { return e.hasAttribute && e.hasAttribute('data-no-capture'); }
+      });
+    }).then(function (c) { fig.classList.remove('fof-capturing'); return c; }, function (e) { fig.classList.remove('fof-capturing'); throw e; });
+  }
+  // Downloads always show the full, desktop-size chart, whatever the reader's screen size:
+  // we draw it in a hidden full-width copy of this page and save that picture.
+  function captureFull() {
+    return new Promise(function (resolve, reject) {
+      var f = document.createElement('iframe'), done = false;
+      f.setAttribute('aria-hidden', 'true'); f.tabIndex = -1;
+      f.style.cssText = 'position:absolute;left:-12000px;top:0;width:800px;height:2400px;border:0;';
+      function finish(ok, val) { if (done) return; done = true; window.removeEventListener('message', onMsg); if (f.parentNode) f.parentNode.removeChild(f); if (ok) resolve(val); else reject(); }
+      function onMsg(e) { if (e.source === f.contentWindow && e.data && e.data.fofCapture) finish(e.data.fofCapture !== 'error', e.data.fofCapture); }
+      window.addEventListener('message', onMsg);
+      f.src = location.pathname + '?fofcapture=1' + '';
+      document.body.appendChild(f);
+      setTimeout(function () { finish(false); }, 25000);
+    });
+  }
   dlBtn.addEventListener('click', function () {
     if (typeof html2canvas !== 'function') { say('Image tool did not load. Please try again.'); return; }
     dlBtn.disabled = true; say('Preparing image…');
-    (document.fonts ? document.fonts.ready : Promise.resolve()).then(function () {
-      return html2canvas(fig, {
-        scale: 2, backgroundColor: '#ffffff', useCORS: true,
-        ignoreElements: function (e) { return e.hasAttribute && e.hasAttribute('data-no-capture'); }
-      });
-    }).then(function (canvas) {
-      canvas.toBlob(function (blob) {
+    var fileName = 'freeofficefinder-office-rental-values-map.png';
+    captureFull().catch(function () { return makeCanvas().then(function (cv) { return cv.toDataURL('image/png'); }); })
+      .then(function (url) { return fetch(url).then(function (r) { return r.blob(); }); })
+      .then(function (blob) {
         var a = document.createElement('a');
         a.href = URL.createObjectURL(blob);
-        a.download = 'freeofficefinder-office-rental-values-map.png';
+        a.download = fileName;
         document.body.appendChild(a); a.click(); a.remove();
         setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
         dlBtn.disabled = false; say('Map downloaded');
-      }, 'image/png');
-    }).catch(function () { dlBtn.disabled = false; say('Sorry, the image could not be created.'); });
+      })
+      .catch(function () { dlBtn.disabled = false; say('Sorry, the image could not be created.'); });
   });
+  // When this page is the hidden full-width copy, draw the picture and hand it back
+  if (/[?&]fofcapture=1/.test(location.search) && window.parent !== window) {
+    window.addEventListener('load', function () {
+      setTimeout(function () {
+        makeCanvas().then(function (cv) { window.parent.postMessage({ fofCapture: cv.toDataURL('image/png') }, '*'); }, function () { window.parent.postMessage({ fofCapture: 'error' }, '*'); });
+      }, 400);
+    });
+  }
 });
 </script>
 </body>
