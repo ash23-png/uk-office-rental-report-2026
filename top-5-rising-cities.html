@@ -148,10 +148,15 @@ window.addEventListener('DOMContentLoaded', function () {
   });
 
   // When embedded, tell the host page how tall the chart is so the iframe fits with no scrollbar.
+  // Tell the page the chart's real height (measured from the chart itself, so it can shrink as well as grow)
   function postHeight() {
     if (window.parent === window) return;
-    window.parent.postMessage({ fofChartHeight: document.documentElement.scrollHeight }, '*');
+    var g = document.querySelector('.fof-graphic');
+    var h = g ? Math.ceil(g.getBoundingClientRect().height) : document.body.scrollHeight;
+    window.parent.postMessage({ fofChartHeight: h }, '*');
   }
+  if (window.ResizeObserver && document.querySelector('.fof-graphic')) new ResizeObserver(postHeight).observe(document.querySelector('.fof-graphic'));
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(postHeight);
   window.addEventListener('load', postHeight);
   window.addEventListener('resize', postHeight);
   postHeight();
