@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Busier offices, scarce space</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600&family=Inter:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,600;8..60,700&display=swap" rel="stylesheet">
+<style>
+  :root { --teal: #23606C; --coral: #D6683C; --ink: #121212; --body: #333333; --muted: #6B6B6B; --rule: #E1E1E1; --pen: #4A4036;
+          --fast: #A23C1E; --rising: #DE7446; --steady: #5B929B; --falling: #1D5560; }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body { margin: 0; background: #fff; color: var(--body); font-family: Inter, -apple-system, "Segoe UI", Roboto, Arial, sans-serif; -webkit-font-smoothing: antialiased; }
+  .fof-graphic { max-width: 760px; margin: 0 auto; padding: 24px 16px; }
+  .kicker { margin: 0 0 6px; font-size: 12px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--teal); }
+  .fof-graphic h3 { margin: 0 0 8px; font-family: "Source Serif 4", Georgia, "Times New Roman", serif; font-size: clamp(24px, 4vw, 32px); line-height: 1.15; font-weight: 700; color: var(--ink); letter-spacing: -.01em; }
+  .dek { margin: 0 0 14px; font-size: 16px; line-height: 1.5; color: var(--body); max-width: 640px; }
+  .search-row { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 14px; }
+  .search { display: block; width: 100%; font: inherit; font-size: 16px; color: var(--ink); border: 1px solid #BDBDBD; border-radius: 4px; padding: 10px 12px; background: #fff; }
+  .search:focus { outline: 2px solid var(--teal); outline-offset: 1px; border-color: var(--teal); }
+  .search-row .search { flex: 1 1 220px; }
+  .region-select { flex: 1 1 200px; appearance: auto; }
+  .paper { position: relative; padding: 0 0 12px; background: #FBF8F2; border: 1px solid #E8E1D3; border-radius: 10px; overflow: hidden; }
+  .map-wrap { background: linear-gradient(180deg, #F2F5F4 0%, #EDF2F1 100%); }
+  .paper > .key, .paper > .key-areas, .paper > .info { padding-left: 12px; padding-right: 12px; }
+  .map { display: block; width: 100%; height: auto; margin: 0 auto; overflow: hidden; }
+  .map-wrap { position: relative; }
+  .back { position: absolute; right: 10px; bottom: 10px; z-index: 2; display: none; align-items: center; justify-content: center; appearance: none; width: 44px; height: 44px; padding: 0; color: var(--ink); background: #fff; border: 1px solid #D6CDBB; border-radius: 50%; cursor: pointer; box-shadow: 0 1px 4px rgba(0,0,0,.15); }
+  .back svg { width: 22px; height: 22px; }
+  .back:hover { color: #fff; background: var(--teal); border-color: var(--teal); }
+  .back:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
+  .paper.zoomed .back { display: inline-flex; }
+  .paper.zoomed .callouts { display: none; }
+  .la { stroke: #FFFFFF; stroke-width: .45; vector-effect: non-scaling-stroke; transition: opacity .25s; stroke-linejoin: round; cursor: pointer; }
+  .la:hover, .la:focus { outline: none; stroke: #4A4036; stroke-width: 1.4; }
+  .la.active { stroke: #121212; stroke-width: 2; }
+  .grey path { fill: #E9E4DA; stroke: #F6F2EA; stroke-width: .6; vector-effect: non-scaling-stroke; }
+  .grey, #fof-las { filter: drop-shadow(0 1.5px 2.5px rgba(40, 60, 60, .22)); }
+  .dot { cursor: pointer; }
+  .dot circle { stroke: #fff; filter: drop-shadow(0 1px 1.5px rgba(0,0,0,.25)); }
+  .dot text { font-family: Inter, -apple-system, "Segoe UI", Roboto, Arial, sans-serif; font-weight: 600; fill: #1A1A1A; stroke: rgba(255,255,255,.9); paint-order: stroke; letter-spacing: .01em; stroke-linejoin: round; pointer-events: none; }
+  .dot:hover circle, .dot:focus circle, .dot.active circle { stroke: #121212; }
+  .dot:focus { outline: none; }
+  .pin { font-family: Inter, -apple-system, "Segoe UI", Roboto, Arial, sans-serif; font-weight: 700; fill: #121212; stroke: #FFFFFF; paint-order: stroke; stroke-linejoin: round; pointer-events: none; }
+  .note { font-family: Caveat, "Comic Sans MS", cursive; font-size: 21px; font-weight: 600; fill: #5A4E40; }
+  .note-arrow { fill: none; stroke: #8C7F6E; stroke-width: 1; stroke-dasharray: 2 4; stroke-linecap: round; opacity: .75; }
+  /* Key */
+  .key { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 16px; margin: 12px 0 0; font-size: 13px; color: var(--ink); }
+  .kbtn { appearance: none; font: inherit; color: inherit; background: transparent; border: 1px solid transparent; border-radius: 999px; padding: 4px 9px; display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
+  @media (hover: hover) { .kbtn:hover { border-color: #D6CDBB; background: #fff; } }
+  .kbtn[aria-pressed="true"] { border-color: var(--teal); background: #fff; box-shadow: 0 0 0 1px var(--teal); }
+  .kbtn:focus-visible { outline: 2px solid var(--teal); outline-offset: 1px; }
+  .key-areas .kbtn { padding: 2px 7px; gap: 0; }
+  .key-hint { text-align: center; margin: 4px 0 0; font-size: 12px; color: var(--muted); }
+  .key i { display: inline-block; width: 13px; height: 13px; border-radius: 50%; border: 2px solid #fff; box-shadow: 0 0 0 1px #D6CDBB; }
+  .key small { color: var(--muted); font-size: 12px; }
+  .key-areas { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 4px 12px; margin: 6px 0 0; font-size: 12px; color: var(--muted); }
+  .key-areas b { display: inline-block; width: 16px; height: 10px; border-radius: 2px; vertical-align: -1px; margin-right: 4px; }
+  .info { margin: 10px 4px 0; min-height: 4.2em; font-size: 14px; line-height: 1.4; color: var(--ink); }
+  .info strong { font-weight: 600; }
+  .info .why { display: block; margin-top: 4px; }
+  .info .why b { font-weight: 600; color: var(--teal); }
+  .notes-list { display: none; margin: 12px 0 0; padding: 0; list-style: none; font-family: Caveat, "Comic Sans MS", cursive; font-size: 20px; line-height: 1.3; color: #4A4036; }
+  .notes-list li { margin: 0 0 4px; }
+  .notes-list strong { font-weight: 600; }
+  /* Cities by region */
+  .cities { margin: 18px 0 0; }
+  .cities h4 { margin: 0 0 4px; font-family: "Source Serif 4", Georgia, serif; font-size: 18px; color: var(--ink); }
+  .cities .hint { margin: 0 0 8px; font-size: 12px; color: var(--muted); }
+  .cgroup { display: grid; grid-template-columns: 150px 1fr; gap: 10px; align-items: start; padding: 10px 0; border-bottom: 1px solid var(--rule); font-size: 14px; }
+  .cgroup > span { display: inline-flex; align-items: center; gap: 7px; font-weight: 600; color: var(--ink); padding-top: 5px; }
+  .cgroup > span i { display: inline-block; width: 12px; height: 12px; border-radius: 50%; }
+  .cgroup > span small { font-weight: 400; color: var(--muted); font-size: 12px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip { appearance: none; font: inherit; font-size: 13px; color: var(--ink); background: #fff; border: 1px solid #DDD3C0; border-radius: 999px; padding: 5px 11px; cursor: pointer; }
+  @media (hover: hover) { .chip:hover { border-color: var(--teal); background: #F4F8F8; } }
+  .chip.on { border-color: var(--teal); background: #F4F8F8; color: var(--teal); }
+  .chip:focus-visible { outline: 2px solid var(--teal); outline-offset: 1px; }
+  .footer { margin-top: 14px; font-size: 12px; line-height: 1.55; color: var(--muted); }
+  .footer p { margin: 0 0 6px; }
+  .footer strong { color: var(--body); font-weight: 600; }
+  .footer a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
+  .credit { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--rule); font-size: 12px; font-weight: 600; letter-spacing: .04em; color: var(--teal); }
+  .credit a { color: inherit; text-decoration: none; }
+  .credit a:hover { text-decoration: underline; }
+  .tools { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 14px; }
+  .tool-btn { appearance: none; font: inherit; font-size: 13px; font-weight: 600; color: var(--teal); background: #fff; border: 1px solid var(--teal); border-radius: 4px; min-height: 40px; padding: 8px 14px; cursor: pointer; }
+  .tool-btn:hover { background: var(--teal); color: #fff; }
+  .tool-btn:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
+  .tool-btn[disabled] { opacity: .6; cursor: wait; }
+  .embed-box { display: none; margin-top: 10px; }
+  .embed-box.open { display: block; }
+  .embed-box label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+  .embed-box textarea { width: 100%; min-height: 110px; font: 12px/1.4 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--ink); border: 1px solid var(--rule); border-radius: 4px; padding: 10px; resize: vertical; }
+  .embed-row { margin-top: 8px; }
+  .status { font-size: 12px; color: var(--teal); }
+  @media (max-width: 600px) { .callouts { display: none; } .notes-list { display: block; } }
+  @media (max-width: 480px) { .fof-graphic { padding: 20px 16px; } .paper { padding: 0 0 10px; } .cgroup { grid-template-columns: 1fr; gap: 6px; } .cgroup > span { padding-top: 0; } }
+</style>
+</head>
+<body>
+<figure class="fof-graphic" data-source-url="https://www.freeofficefinder.com/hub/research-reports/uk-office-rental-report-2026">
+  <p class="kicker">Official office rental values · our 19 cities</p>
+  <h3>Outside London, offices are busier and good space is running out</h3>
+  <p class="dek">Offices in Bristol and Leeds are far busier than London's, and good space is scarce.</p>
+  <div class="search-row" data-no-capture>
+    <label for="fof-search" style="position:absolute;left:-9999px">Find your area</label>
+    <input id="fof-search" class="search" type="search" list="fof-areas" placeholder="Find your area, e.g. Leeds" autocomplete="off">
+    <datalist id="fof-areas"></datalist>
+    <label for="fof-region" style="position:absolute;left:-9999px">Choose a region</label>
+    <select id="fof-region" class="search region-select">
+      <option value="">Choose a region</option>
+      <option value="East Midlands">East Midlands</option><option value="East of England">East of England</option><option value="London">London</option><option value="North East">North East</option><option value="North West">North West</option><option value="South East">South East</option><option value="South West">South West</option><option value="Wales">Wales</option><option value="West Midlands">West Midlands</option><option value="Yorkshire and the Humber">Yorkshire and the Humber</option><option value="Scotland">Scotland</option>
+    </select>
+  </div>
+  <div class="paper" id="fof-paper">
+    <div class="map-wrap">
+    <svg class="map" id="fof-map" viewBox="-20 5 780 860" role="group" aria-label="Map of the 19 cities in our study, marked by which way official office rental values are heading, over council areas in England and Wales. Scotland and Northern Ireland are shown in grey.">
+      <defs>
+        <filter id="fof-rough" x="-2%" y="-2%" width="104%" height="104%">
+          <feTurbulence type="fractalNoise" baseFrequency="0.04" numOctaves="2" seed="7" result="n"/>
+          <feDisplacementMap in="SourceGraphic" in2="n" scale="1.8" xChannelSelector="R" yChannelSelector="G"/>
+        </filter>
+        <marker id="fof-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M1,1 L9,5 L1,9" fill="none" stroke="#8C7F6E" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></marker>
+      </defs>
+      <g class="grey"><path d="M44,284L41,288L37,287L33,292L30,290L16,295L9,295L11,286L6,279L7,272L26,270L36,272L42,276Z M9,295L16,295L19,305L33,317L27,323L31,329L23,333L20,329L9,327L-4,332L-7,336L-17,330L-20,319L-15,310L-10,311L-4,301Z M33,292L37,287L41,288L45,290L47,292L46,295L37,300Z M39,244L32,252L28,247L18,251L10,253L7,257L4,254L-10,257L-13,264L-19,266L-25,266L-32,241L-26,241L-20,226L-15,229L17,223L24,228L30,226L37,233L35,245Z M-32,241L-25,266L-19,266L-21,271L-39,272L-57,282L-70,286L-79,282L-82,275L-77,271L-72,275L-64,271L-59,272L-59,267L-52,259L-51,252L-44,240Z M-70,286L-57,282L-39,272L-21,271L-26,282L-25,296L-42,304L-50,305L-49,312L-40,317L-42,321L-38,329L-45,331L-51,336L-60,338L-68,336L-72,328L-83,327L-82,318L-88,316L-100,299L-92,297L-89,291L-79,293Z M16,295L30,290L33,292L37,300L46,295L47,292L50,296L46,305L41,308L38,316L33,317L19,305Z M44,284L42,276L36,272L26,270L7,272L7,257L10,253L18,251L28,247L32,252L39,244L38,252L42,255L49,267L54,267L56,276Z M7,272L6,279L11,286L9,295L-4,301L-10,311L-15,310L-20,319L-29,308L-40,317L-49,312L-50,305L-42,304L-25,296L-26,282L-21,271L-19,266L-13,264L-10,257L4,254L7,257Z M-7,336L-4,332L9,327L20,329L23,333L31,329L27,323L33,317L38,316L41,308L46,305L53,310L60,310L60,315L64,324L55,334L44,332L40,335L39,346L28,354L20,346L10,344L5,350L-9,347Z M47,292L45,290L52,285L62,286L68,298L70,310L64,324L60,315L60,310L53,310L46,305L50,296Z M185,134L178,140L176,138L176,138L175,137L173,137L169,134L173,127L188,127Z M230,244L218,256L212,259L187,257L185,269L176,268L160,279L150,278L146,269L144,272L133,266L138,274L135,289L124,282L123,278L109,268L100,274L105,292L100,289L100,282L90,268L88,254L93,251L97,263L96,253L103,248L116,250L122,246L120,241L132,236L133,239L142,221L152,224L155,211L162,205L172,207L178,216L181,224L187,220L186,214L191,211L207,210L203,219L208,215L214,217L219,227L224,225L230,230L227,237Z M162,205L155,211L152,224L142,221L133,239L132,236L134,221L127,216L127,208L134,210L131,204L137,200L137,195L126,190L125,182L130,174L131,172L142,181L147,182L151,190L147,194L159,191L164,197Z M260,155L254,161L252,158L246,167L235,165L231,168L224,158L217,156L217,154L227,151L233,142L242,143L249,149Z M147,182L142,181L131,172L130,174L129,172L139,166L147,171Z M-42,38L-40,30L-36,29L-35,37ZM-26,-11L-21,-3L-24,9L-23,15L-27,15L-22,22L-31,21L-33,7L-30,0L-32,-10ZM-26,-19L-19,-12L-29,-13ZM-16,-33L-14,-32L-11,-30L-14,-22L-24,-22L-31,-31L-35,-33L-33,-38L-21,-38L-16,-41Z M173,137L175,137L182,147L192,148L186,149L173,159L161,145L174,143Z M42,45L40,50L36,48ZM30,29L34,32L30,43L22,35ZM52,-16L49,-9L51,-1L45,-1L48,-12ZM32,-40L41,-31L43,-22L42,-9L43,3L58,12L64,8L70,11L69,16L61,20L60,25L48,35L49,25L54,20L48,17L44,23L40,15L31,19L24,7L22,-7L18,-6L18,-1L9,-5L5,-11L10,-20L14,-12L15,-30L25,-16L28,-19L34,-15L29,-23L28,-33ZM180,-26L184,-11L183,-5L194,-7L199,-3L200,2L195,9L198,18L183,31L176,48L167,47L163,53L154,50L151,56L142,59L138,65L134,61L130,66L129,73L122,75L127,81L99,90L99,89L100,81L93,78L86,79L86,76L100,58L84,73L72,86L64,91L52,85L46,75L57,73L44,70L38,70L34,65L40,62L49,60L52,64L55,58L62,54L63,49L57,47L59,37L66,33L61,30L65,25L73,25L67,20L73,9L66,4L77,1L72,-5L63,1L62,-9L58,-13L62,-25L71,-16L78,-21L68,-22L62,-31L64,-37L70,-36L70,-40L63,-43L64,-54L71,-54L74,-44L77,-51L73,-53L75,-61L84,-52L86,-59L97,-51L91,-58L99,-63L93,-66L85,-77L91,-74L95,-80L90,-96L94,-92L105,-97L102,-106L108,-116L105,-120L110,-125L113,-134L120,-133L132,-123L126,-115L135,-124L136,-128L153,-122L161,-127L181,-125L188,-132L203,-128L201,-133L214,-135L223,-133L217,-121L221,-116L218,-104L211,-97L202,-94L195,-83L176,-66L163,-59L167,-58L166,-51L154,-53L164,-46L169,-49L178,-48L168,-33L166,-38L157,-32L150,-32L143,-23L153,-30L167,-31L156,-19L152,-13L156,-11L165,-23L174,-22Z M125,154L123,164L117,163L114,158L109,160L113,151Z M217,156L224,158L231,168L225,168L214,180L211,170L205,173L200,167Z M183,31L198,18L195,9L200,2L199,-3L194,-7L183,-5L184,-11L180,-26L193,-29L195,-33L204,-36L222,-29L230,-33L235,-32L234,-23L240,-15L233,-15L225,-11L222,-1L226,2L226,8L222,14L215,12L209,20L203,23L201,31Z M86,175L92,180L96,194L95,204L89,206L82,203L77,187L79,180ZM130,174L125,182L126,190L122,193L107,179L110,174L109,160L114,158L117,163L122,173L129,172Z M280,169L267,186L262,188L268,196L270,205L268,210L261,213L259,218L253,218L248,222L240,235L230,244L227,237L230,230L224,225L219,227L214,217L208,215L203,219L207,210L191,211L189,208L192,200L190,190L198,179L194,173L198,168L200,167L205,173L211,170L214,180L225,168L231,168L235,165L246,167L252,158L254,161L260,155L274,158Z M132,236L120,241L122,246L116,250L103,248L96,253L96,247L100,238L108,229L109,219L114,211L121,207L124,201L122,193L126,190L137,195L137,200L131,204L134,210L127,208L127,216L134,221Z M191,211L186,214L187,220L181,224L178,216L172,207L162,205L164,197L159,191L147,194L151,190L147,182L147,171L150,164L156,165L166,175L177,172L186,169L194,173L198,179L190,190L192,200L189,208Z M173,127L169,134L173,137L174,143L161,145L153,147L145,146L146,151L138,150L134,146L134,141L127,138L121,125L124,113L113,107L121,98L126,96L144,90L146,97L154,93L158,98L151,99L149,112L156,118L163,119Z M277,19L276,33L274,29L263,34L266,25L265,17Z M176,48L183,31L201,31L203,23L209,20L215,12L222,14L226,8L226,2L222,-1L225,-11L233,-15L240,-15L234,-23L235,-32L251,-29L269,-30L274,-33L284,-30L290,-24L293,-9L281,9L277,19L265,17L266,25L263,34L274,29L276,33L269,46L270,52L262,64L256,68L245,65L242,54L236,46L229,43L218,46L216,54L206,50L201,55L196,55L189,49L181,51Z M98,161L101,175L95,170L94,162L89,156L92,154ZM35,151L34,155L40,177L25,188L20,186L26,179L21,166L16,174L10,175L14,165L15,158L24,157L31,151ZM36,130L28,139L29,134ZM46,148L42,146L46,140L61,128L62,133L52,150L46,158L44,166L37,161L37,154ZM99,90L127,81L131,86L123,88L126,96L121,98L113,107L124,113L121,125L127,138L126,153L120,148L111,148L110,141L116,127L108,141L109,148L103,161L92,153L88,157L90,164L81,156L82,146L91,132L76,148L82,164L82,171L78,172L72,183L67,207L69,213L63,219L51,219L52,209L57,206L58,190L68,170L62,166L67,153L62,152L69,140L60,150L74,125L67,131L71,122L68,118L70,109L76,99L84,96L93,98ZM3,84L-12,92L-10,84ZM86,79L93,78L100,81L99,89L94,97L80,96L79,90ZM40,75L47,82L49,88L58,89L65,97L63,105L54,111L46,109L42,112L25,114L24,106L34,108L44,105L33,105L38,93L33,86L26,85ZM20,69L13,79L8,78L11,74Z M217,154L217,156L200,167L198,168L199,159L195,158L197,149L204,151L211,150Z M139,166L129,172L122,173L117,163L123,164L125,154L128,154L139,159Z M127,138L134,141L134,146L138,150L139,156L139,159L128,154L126,153Z M173,159L186,149L192,148L197,149L195,158L199,159L198,168L194,173L186,169L177,172L179,162Z M201,55L206,50L216,54L218,46L229,43L236,46L242,54L245,65L256,68L253,83L250,88L239,96L232,98L221,95L217,99L211,95L215,87L214,79L204,75L200,66Z M217,99L221,95L232,98L219,100Z M138,150L146,151L145,146L153,147L159,156L151,158L139,156Z M178,140L185,134L200,133L207,128L200,120L205,118L206,111L227,101L234,102L233,110L247,119L233,129L226,126L213,136L212,142L198,145L199,148L188,142Z M185,134L188,127L173,127L163,119L156,118L149,112L151,99L158,98L154,93L146,97L144,90L126,96L123,88L131,86L127,81L122,75L129,73L130,66L134,61L138,65L142,59L151,56L154,50L163,53L167,47L176,48L181,51L189,49L196,55L201,55L200,66L204,75L214,79L215,87L211,95L217,99L219,100L206,111L205,118L200,120L207,128L200,133Z M147,171L139,166L139,159L139,156L151,158L157,160L156,165L150,164Z M161,145L173,159L179,162L177,172L166,175L156,165L157,160L151,158L159,156L153,147Z"></path></g>
+      <g id="fof-las">
+<path class="la" d="M404,695L406,699L398,700L396,696L396,694Z" data-c="E07000223" data-n="Adur" data-p="22.7" data-k="350" data-r="South East"></path>
+<path class="la" d="M318,472L313,477L309,474L310,463L316,454L324,457L327,460L327,463L329,468Z" data-c="E07000032" data-n="Amber Valley" data-p="8.4" data-k="580" data-r="East Midlands"></path>
+<path class="la" d="M396,694L396,696L391,702L382,703L370,707L370,707L369,706L374,701L377,692L383,692Z" data-c="E07000224" data-n="Arun" data-p="18.9" data-k="490" data-r="South East"></path>
+<path class="la" d="M336,466L334,468L327,463L327,460L327,451L331,451L337,456L338,457L334,460Z" data-c="E07000170" data-n="Ashfield" data-p="2.3" data-k="540" data-r="East Midlands"></path>
+<path class="la" d="M472,679L460,677L462,663L472,652L484,649L486,658L488,663L485,671L475,672Z" data-c="E07000105" data-n="Ashford" data-p="24.9" data-k="1150" data-r="South East"></path>
+<path class="la" d="M468,575L459,562L457,558L461,552L469,553L477,554L478,559L489,563L492,566L493,567L493,568L494,568L500,574L487,576L484,575L480,573Z" data-c="E07000200" data-n="Babergh" data-p="15.4" data-k="630" data-r="East of England"></path>
+<path class="la" d="M428.6,624.9L426.4,624.1L424.5,624.7L424.1,623.6L422.8,623.2L422.4,621.6L424.1,621.4L425.7,620.1L426.5,618.5L426.1,617L427.5,615.6L427.5,618.8L428.6,619.6L430.1,619.1L430.5,620.5Z" data-c="E09000002" data-n="Barking and Dagenham" data-p="19.9" data-k="800" data-r="London"></path>
+<path class="la" d="M397.4,612.6L400.5,611.9L400.9,610.4L403.4,609.8L404,608.8L404.8,609.4L405.4,608.9L405.1,609.5L407.2,610.3L409,612.7L408,614.5L408.4,615.1L407.7,616.5L407.3,615.7L407.3,617.7L406.4,619.2L403.7,621.1L402.3,619.3L401.1,619.6L401.3,618.1L400,616.4Z" data-c="E09000003" data-n="Barnet" data-p="17.1" data-k="1990" data-r="London"></path>
+<path class="la" d="M296,418L295,413L308,409L310,404L319,403L325,406L327,414L318,418L303,415Z" data-c="E08000038" data-n="Barnsley" data-p="4.3" data-k="1120" data-r="Yorkshire and the Humber"></path>
+<path class="la" d="M452,622L443,619L444,609L455,613L455,616L452,622Z" data-c="E07000066" data-n="Basildon" data-p="16.8" data-k="910" data-r="East of England"></path>
+<path class="la" d="M323,646L324,642L353,643L353,643L353,661L344,667L339,662L332,661L324,658Z" data-c="E07000084" data-n="Basingstoke and Deane" data-p="1.7" data-k="1270" data-r="South East"></path>
+<path class="la" d="M351,414L360,419L364,436L362,442L362,447L351,445L346,440L341,443L334,445L335,435L340,425L348,422Z" data-c="E07000171" data-n="Bassetlaw" data-p="13.7" data-k="740" data-r="East Midlands"></path>
+<path class="la" d="M266,637L266,648L255,653L239,649L246,640L251,637Z" data-c="E06000022" data-n="Bath and North East Somerset" data-p="16.2" data-k="1260" data-r="South West"></path>
+<path class="la" d="M377,563L372,554L373,546L378,547L385,540L391,544L391,549L397,548L399,554L392,559L391,566L383,568Z" data-c="E06000055" data-n="Bedford" data-p="11.4" data-k="1090" data-r="East of England"></path>
+<path class="la" d="M432.8,628.3L431.7,630.9L429.8,632.2L429.2,633.8L428.7,633.5L428.6,635.9L428.3,635.9L425.5,635.4L423.3,633.6L424.1,632.4L423.6,629.9L424.7,628.9L426.4,628.7L425.9,625L428.8,625.6L429.3,626.2L430.3,628.1Z" data-c="E09000004" data-n="Bexley" data-p="16.8" data-k="550" data-r="London"></path>
+<path class="la" d="M293,513L298,513L300,521L293,533L285,535L283,530L284,527L290,517Z" data-c="E08000025" data-n="Birmingham" data-p="13.7" data-k="8840" data-r="West Midlands"></path>
+<path class="la" d="M337,505L340,512L344,516L330,523L328,522L328,516L336,504Z" data-c="E07000129" data-n="Blaby" data-p="3.8" data-k="630" data-r="East Midlands"></path>
+<path class="la" d="M258,394L260,398L260,402L251,402L248,389L249,388L254,386Z" data-c="E06000008" data-n="Blackburn with Darwen" data-p="8.2" data-k="1460" data-r="North West"></path>
+<path class="la" d="M220,381L217,386L217,376Z" data-c="E06000009" data-n="Blackpool" data-p="10.9" data-k="770" data-r="North West"></path>
+<path class="la" d="M211,609L198,598L200,594L209,595L210,598Z" data-c="W06000019" data-n="Blaenau Gwent" data-p="13.1" data-k="250" data-r="Wales"></path>
+<path class="la" d="M327,460L324,457L327,443L327,439L330,436L335,435L334,445L331,451L327,451Z" data-c="E07000033" data-n="Bolsover" data-p="7.3" data-k="380" data-r="East Midlands"></path>
+<path class="la" d="M251,402L260,402L262,412L255,413L250,413L244,406Z" data-c="E08000001" data-n="Bolton" data-p="18.3" data-k="1770" data-r="North West"></path>
+<path class="la" d="M425,462L415,477L408,481L397,475L400,467L400,459L405,466L412,466L415,459L421,457Z" data-c="E07000136" data-n="Boston" data-p="1.7" data-k="390" data-r="East Midlands"></path>
+<path class="la" d="M299,704L307,710L303,713L290,715L283,713L285,705Z" data-c="E06000058" data-n="Bournemouth, Christchurch and Poole" data-p="15.2" data-k="2200" data-r="South West"></path>
+<path class="la" d="M374,640L367,646L363,644L365,634L375,632Z" data-c="E06000036" data-n="Bracknell Forest" data-p="15.7" data-k="840" data-r="South East"></path>
+<path class="la" d="M280,381L280,378L284,376L285,367L291,367L300,372L304,388L298,391L295,387Z" data-c="E08000032" data-n="Bradford" data-p="11.5" data-k="3770" data-r="Yorkshire and the Humber"></path>
+<path class="la" d="M442,568L443,565L449,566L459,562L468,575L464,591L456,598L451,588L447,585Z" data-c="E07000067" data-n="Braintree" data-p="16.0" data-k="880" data-r="East of England"></path>
+<path class="la" d="M477,485L485,494L485,501L480,502L477,511L483,513L486,521L482,530L478,531L469,528L458,528L461,523L452,523L454,515L449,510L449,499L460,494L459,487L465,489L467,484Z" data-c="E07000143" data-n="Breckland" data-p="4.4" data-k="530" data-r="East of England"></path>
+<path class="la" d="M400,616.4L401.3,618.1L401.1,619.6L402.3,619.3L403.7,621.1L405.2,623.1L404.9,624L404.3,623.5L403.6,624L402.8,623.8L401.6,623.6L399.1,624L399.1,623L397.5,623.6L397.5,622.3L395.6,621.2L396.4,619.8L396.1,618.8L397.5,617.9L399,618L398.4,617.2Z" data-c="E09000005" data-n="Brent" data-p="28.7" data-k="1720" data-r="London"></path>
+<path class="la" d="M443,619L439,619L431,613L429,609L439,603L444,609Z" data-c="E07000068" data-n="Brentwood" data-p="4.4" data-k="650" data-r="East of England"></path>
+<path class="la" d="M168,625L175,625L175,614L181,613L187,618L186,628L177,631L177,632L176,632L171,631Z" data-c="W06000013" data-n="Bridgend" data-p="16.1" data-k="810" data-r="Wales"></path>
+<path class="la" d="M411,692L418,697L418,701L406,699L404,695L404,695Z" data-c="E06000043" data-n="Brighton and Hove" data-p="15.0" data-k="2700" data-r="South East"></path>
+<path class="la" d="M235,630L235,630L237,629L236,630ZM251,637L246,640L240,631L240,625L251,630Z" data-c="E06000023" data-n="Bristol" data-p="37.1" data-k="4280" data-r="South West"></path>
+<path class="la" d="M485,501L485,494L477,485L491,481L498,483L506,495L514,496L521,505L514,509L507,503L500,503L495,501Z" data-c="E07000144" data-n="Broadland" data-p="7.7" data-k="490" data-r="East of England"></path>
+<path class="la" d="M428.3,635.9L429.3,637.6L428.3,637.6L428.7,640.1L427.7,642.8L426.5,642.9L426.5,644.4L424.4,646L424.5,648.4L421.6,648.6L420.9,647L419.8,648.7L418.8,644.8L416.7,639.5L416,639.7L416,638.5L413.9,637L413.1,635.2L413.1,635.2L413.4,634.6L416.3,634.5L417.7,635.8L420,634L420.7,634.7L420.2,632.7L422.4,634.5L423.3,633.6L425.5,635.4Z" data-c="E09000006" data-n="Bromley" data-p="16.5" data-k="1400" data-r="London"></path>
+<path class="la" d="M274,531L274,530L283,530L285,535L293,533L293,537L292,543L284,546L279,545L276,539Z" data-c="E07000234" data-n="Bromsgrove" data-p="14.7" data-k="740" data-r="West Midlands"></path>
+<path class="la" d="M418,598L417,607L410,606L411,602Z" data-c="E07000095" data-n="Broxbourne" data-p="2.9" data-k="350" data-r="East of England"></path>
+<path class="la" d="M334,468L335,479L333,480L329,468L327,463Z" data-c="E07000172" data-n="Broxtowe" data-p="4.6" data-k="440" data-r="East Midlands"></path>
+<path class="la" d="M385,628L376,624L375,628L370,620L362,623L358,623L355,615L359,610L358,605L343,597L347,575L343,573L342,570L353,566L359,570L363,576L373,578L370,584L378,588L380,593L368,591L373,599L381,603L383,608L384,617Z" data-c="E06000060" data-n="Buckinghamshire" data-p="18.7" data-k="3620" data-r="South East"></path>
+<path class="la" d="M276,383L273,392L264,389L262,384L264,382Z" data-c="E07000117" data-n="Burnley" data-p="12.1" data-k="780" data-r="North West"></path>
+<path class="la" d="M260,402L260,398L266,404L269,412L267,414L262,412Z" data-c="E08000002" data-n="Bury" data-p="19.2" data-k="1130" data-r="North West"></path>
+<path class="la" d="M211,624L203,623L198,614L201,610L197,598L198,598L211,609L213,616Z" data-c="W06000018" data-n="Caerphilly" data-p="8.0" data-k="630" data-r="Wales"></path>
+<path class="la" d="M273,392L276,383L280,381L295,387L298,391L299,395L283,403L282,402L280,396L274,396Z" data-c="E08000033" data-n="Calderdale" data-p="8.6" data-k="1810" data-r="Yorkshire and the Humber"></path>
+<path class="la" d="M426,548L427,555L422,556L420,550Z" data-c="E07000008" data-n="Cambridge" data-p="12.3" data-k="1320" data-r="East of England"></path>
+<path class="la" d="M411,624.8L410.6,625.1L409.4,625.4L407.8,622.9L405.2,623.1L403.7,621.1L406.4,619.2L408.3,619.5L409.8,623.5Z" data-c="E09000007" data-n="Camden" data-p="22.0" data-k="9060" data-r="London"></path>
+<path class="la" d="M287,505L285,507L281,503L282,497L288,493Z" data-c="E07000192" data-n="Cannock Chase" data-p="15.0" data-k="610" data-r="West Midlands"></path>
+<path class="la" d="M486,658L484,649L487,644L482,640L486,640L500,636L502,641L496,658Z" data-c="E07000106" data-n="Canterbury" data-p="22.0" data-k="930" data-r="South East"></path>
+<path class="la" d="M208,635L196,628L203,623L211,624L213,629Z" data-c="W06000015" data-n="Cardiff" data-p="12.3" data-k="4160" data-r="Wales"></path>
+<path class="la" d="M117,569L138,571L144,565L152,565L158,560L169,562L177,571L172,579L172,587L166,598L157,599L150,606L149,606L149,607L147,611L147,611L130,607L129,596L122,603L111,602L112,594L106,591L106,583L111,583L121,575Z" data-c="W06000010" data-n="Carmarthenshire" data-p="11.4" data-k="1050" data-r="Wales"></path>
+<path class="la" d="M460,617L460,621L454,624L454,623L452,622L455,616Z" data-c="E07000069" data-n="Castle Point" data-p="11.9" data-k="240" data-r="East of England"></path>
+<path class="la" d="M391,583L383,585L389,590L393,587L394,590L390,591L380,593L378,588L370,584L373,578L372,569L377,563L383,568L391,566L392,559L399,554L401,557L406,559L406,565L398,576L392,576Z" data-c="E06000056" data-n="Central Bedfordshire" data-p="9.5" data-k="1360" data-r="East of England"></path>
+<path class="la" d="M158,515L159,515L165,516L167,524L172,521L169,528L176,538L171,541L169,562L158,560L152,565L144,565L138,571L117,569L110,568L108,563L112,559L120,560L129,551L140,547L145,540L151,523L151,518Z" data-c="W06000008" data-n="Ceredigion" data-p="6.2" data-k="520" data-r="Wales"></path>
+<path class="la" d="M346,505L337,505L336,504L331,499L327,495L332,489L336,491L346,488L348,501L352,502Z" data-c="E07000130" data-n="Charnwood" data-p="3.8" data-k="820" data-r="East Midlands"></path>
+<path class="la" d="M455,613L444,609L439,603L440,597L439,594L451,588L456,598L461,610Z" data-c="E07000070" data-n="Chelmsford" data-p="7.8" data-k="1260" data-r="East of England"></path>
+<path class="la" d="M284,586L280,590L275,588L278,582Z" data-c="E07000078" data-n="Cheltenham" data-p="19.7" data-k="1200" data-r="South West"></path>
+<path class="la" d="M343,573L347,575L343,597L334,598L331,599L330,598L331,585L326,578L316,576L318,565L328,557L334,565L329,566L332,577Z" data-c="E07000177" data-n="Cherwell" data-p="30.9" data-k="1200" data-r="South East"></path>
+<path class="la" d="M251,433L257,428L264,431L268,431L282,430L285,446L275,450L270,457L260,464L260,469L250,475L239,470L241,465L236,462L244,453L255,452L262,443L252,438Z" data-c="E06000049" data-n="Cheshire East" data-p="17.3" data-k="3920" data-r="North West"></path>
+<path class="la" d="M236,436L246,435L251,433L252,438L262,443L255,452L244,453L236,462L241,465L239,470L237,471L230,469L228,460L222,455L225,449L214,442L214,442L213,440L212,438L213,438L213,437L225,436Z" data-c="E06000050" data-n="Cheshire West and Chester" data-p="16.5" data-k="2560" data-r="North West"></path>
+<path class="la" d="M327,439L327,443L317,445L318,438Z" data-c="E07000034" data-n="Chesterfield" data-p="4.6" data-k="880" data-r="East Midlands"></path>
+<path class="la" d="M357,695L360,679L369,672L387,671L383,692L377,692L374,701L369,706L368,711L359,706L357,698Z" data-c="E07000225" data-n="Chichester" data-p="13.2" data-k="920" data-r="South East"></path>
+<path class="la" d="M248,389L251,402L244,406L240,405L233,403L232,396L242,397Z" data-c="E07000118" data-n="Chorley" data-p="14.9" data-k="720" data-r="North West"></path>
+<path class="la" d="M412.7,626L410.8,625.7L410.6,625.7L410.6,625.1L411,624.8L412.3,624.5L412.7,624.4Z" data-c="E09000001" data-n="City of London" data-p="11.2" data-k="12160" data-r="London"></path>
+<path class="la" d="M464,591L468,575L480,573L484,575L478,579L481,587L473,594Z" data-c="E07000071" data-n="Colchester" data-p="14.1" data-k="1310" data-r="East of England"></path>
+<path class="la" d="M190,470L182,472L181,467L167,474L162,466L156,467L154,457L160,445L156,442L171,433L175,437L188,435L186,442L190,451L184,459L189,460Z" data-c="W06000003" data-n="Conwy" data-p="8.0" data-k="870" data-r="Wales"></path>
+<path class="la" d="M114,688L120,689L121,701L124,705L128,719L134,731L136,742L134,746L137,754L129,749L117,752L98,752L95,764L91,762L81,771L81,769L79,765L74,776L77,781L66,790L59,777L48,772L43,778L34,781L32,771L44,762L51,765L71,749L72,743L79,739L80,728L88,723L96,723L99,716L104,713L113,704Z" data-c="E06000052" data-n="Cornwall" data-p="18.5" data-k="3030" data-r="South West"></path>
+<path class="la" d="M267,621L266,619L266,610L272,612L279,598L276,595L280,590L284,586L293,586L289,580L295,575L293,568L300,564L307,572L307,577L310,582L303,599L308,609L306,609L299,611L288,615L281,611L275,620Z" data-c="E07000079" data-n="Cotswold" data-p="20.0" data-k="970" data-r="South West"></path>
+<path class="la" d="M330,285L321,293L318,298L302,296L302,305L296,310L285,314L280,311L272,313L272,306L264,299L265,293L261,288L263,278L269,279L274,272L283,269L288,273L294,266L303,265L310,268L314,277L323,270Z" data-c="E06000047" data-n="County Durham" data-p="23.8" data-k="2390" data-r="North East"></path>
+<path class="la" d="M311,527L314,526L320,527L319,536L310,534Z" data-c="E08000026" data-n="Coventry" data-p="8.6" data-k="1660" data-r="West Midlands"></path>
+<path class="la" d="M402,666L407,662L410,663L410,665L405,671Z" data-c="E07000226" data-n="Crawley" data-p="22.5" data-k="1260" data-r="South East"></path>
+<path class="la" d="M410.5,649.6L409.6,648.1L408.4,648.1L408.3,645.9L409,645.7L409,643.7L410.8,643.2L409.5,638.5L410.1,637.7L409.9,636.2L410.8,635L413.1,635.2L413.9,637L416,638.5L416,639.7L416.7,639.5L418.8,644.8L416.1,643.8L415.3,645.6L413.4,645.9L412.7,647.9Z" data-c="E09000008" data-n="Croydon" data-p="14.4" data-k="1750" data-r="London"></path>
+<path class="la" d="M240,235L242,241L253,251L246,259L249,263L247,272L239,275L230,273L222,279L222,288L217,288L216,297L221,299L220,309L210,314L206,328L206,333L205,342L201,342L194,332L194,326L181,307L186,298L186,292L194,281L197,269L209,260L214,263L217,257L218,257L218,256L230,244Z" data-c="E06000063" data-n="Cumberland" data-p="9.1" data-k="1650" data-r="North West"></path>
+<path class="la" d="M380,593L390,591L389,602L383,608L381,603L373,599L368,591Z" data-c="E07000096" data-n="Dacorum" data-p="11.0" data-k="1140" data-r="East of England"></path>
+<path class="la" d="M318,298L318,310L316,313L309,307L302,305L302,296Z" data-c="E06000005" data-n="Darlington" data-p="19.0" data-k="850" data-r="North East"></path>
+<path class="la" d="M439,630L441,638L429,636L433,628Z" data-c="E07000107" data-n="Dartford" data-p="9.9" data-k="730" data-r="South East"></path>
+<path class="la" d="M189,483L190,470L189,460L184,459L190,451L186,442L188,435L197,431L194,435L203,452L208,453L212,461L210,469L214,473L199,476L196,480Z" data-c="W06000004" data-n="Denbighshire" data-p="12.1" data-k="640" data-r="Wales"></path>
+<path class="la" d="M323,479L321,483L314,481L313,477L318,472Z" data-c="E06000015" data-n="Derby" data-p="1.6" data-k="1840" data-r="East Midlands"></path>
+<path class="la" d="M316,454L310,463L309,474L300,478L300,483L295,481L295,471L298,464L296,453L290,448L297,442L295,437L303,434L306,427L309,436L313,449Z" data-c="E07000035" data-n="Derbyshire Dales" data-p="4.0" data-k="480" data-r="East Midlands"></path>
+<path class="la" d="M344,398L355,400L351,414L348,422L340,425L332,422L327,414L325,406L332,402Z" data-c="E08000017" data-n="Doncaster" data-p="13.3" data-k="1610" data-r="Yorkshire and the Humber"></path>
+<path class="la" d="M264,674L269,675L279,689L288,684L294,691L298,690L299,704L285,705L283,713L291,721L289,726L278,726L257,722L254,727L232,713L222,713L226,705L221,702L226,699L244,695L245,685L252,683L255,688Z" data-c="E06000059" data-n="Dorset" data-p="16.9" data-k="2060" data-r="South West"></path>
+<path class="la" d="M496,658L502,641L509,643L513,652L512,661L501,666Z" data-c="E07000108" data-n="Dover" data-p="31.1" data-k="860" data-r="South East"></path>
+<path class="la" d="M274,530L272,522L276,517L280,517L284,527L283,530Z" data-c="E08000027" data-n="Dudley" data-p="15.8" data-k="1600" data-r="West Midlands"></path>
+<path class="la" d="M395.6,621.2L397.5,622.3L397.5,623.6L399.1,623L399.1,624L401.6,623.6L401.2,626.9L400.3,627.7L399.4,626.8L398.5,627L397.3,628L394.7,627.4L393.4,628.3L391,627.4L393,624.2L390,623.1L391.6,622.8L391.4,622.2L392.8,621.4Z" data-c="E09000009" data-n="Ealing" data-p="21.2" data-k="2060" data-r="London"></path>
+<path class="la" d="M443,526L439,529L443,537L448,542L443,545L439,541L438,546L449,548L448,554L443,555L430,548L431,538L418,535L417,532L430,518L438,519Z" data-c="E07000009" data-n="East Cambridgeshire" data-p="8.8" data-k="430" data-r="East of England"></path>
+<path class="la" d="M221,702L226,705L222,713L201,717L193,724L188,716L187,716L187,716L187,710L180,709L179,710L180,705L194,702L203,694L209,694L215,692L216,699Z" data-c="E07000040" data-n="East Devon" data-p="18.2" data-k="730" data-r="South West"></path>
+<path class="la" d="M344,667L353,661L362,659L363,666L369,670L369,672L360,679L357,695L351,692L348,680ZM369,670L369,670L369,670Z" data-c="E07000085" data-n="East Hampshire" data-p="13.8" data-k="740" data-r="South East"></path>
+<path class="la" d="M421,597L418,598L411,602L408,601L405,589L405,587L406,582L415,574L421,575L425,585L429,584L428,592L427,595Z" data-c="E07000242" data-n="East Hertfordshire" data-p="15.8" data-k="1010" data-r="East of England"></path>
+<path class="la" d="M403,420L406,411L412,410L420,413L426,423L435,445L434,456L425,462L421,457L415,459L412,466L405,466L400,459L393,448L391,437L398,427L397,421Z" data-c="E07000137" data-n="East Lindsey" data-p="5.1" data-k="550" data-r="East Midlands"></path>
+<path class="la" d="M394,389L390,380L385,383L383,390L376,392L370,389L366,394L355,400L344,398L340,397L353,391L350,376L351,374L351,362L354,359L366,358L382,346L381,343L394,346L395,343L404,347L398,349L395,359L399,371L417,395L419,401L412,397L404,399Z" data-c="E06000011" data-n="East Riding of Yorkshire" data-p="18.1" data-k="1630" data-r="Yorkshire and the Humber"></path>
+<path class="la" d="M298,464L295,471L295,481L300,483L311,487L303,498L296,492L287,490L288,485L281,478L290,475L291,467Z" data-c="E07000193" data-n="East Staffordshire" data-p="9.7" data-k="690" data-r="West Midlands"></path>
+<path class="la" d="M520,512L527,511L529,516L522,539L519,559L512,564L503,577L501,573L501,573L494,568L492,560L498,548L497,545L507,539L502,526L511,518L522,518Z" data-c="E07000244" data-n="East Suffolk" data-p="10.8" data-k="1550" data-r="East of England"></path>
+<path class="la" d="M443,701L435,707L437,700Z" data-c="E07000061" data-n="Eastbourne" data-p="39.8" data-k="490" data-r="South East"></path>
+<path class="la" d="M328,695L327,688L326,682L333,685L335,693L332,695L332,698L332,698Z" data-c="E07000086" data-n="Eastleigh" data-p="18.2" data-k="700" data-r="South East"></path>
+<path class="la" d="M397,639L397,645L392,649L388,646L387,644L388,640L393,637Z" data-c="E07000207" data-n="Elmbridge" data-p="22.7" data-k="930" data-r="South East"></path>
+<path class="la" d="M416.6,607.2L416.7,610.9L414.9,615.3L408.4,615.1L408,614.5L409,612.7L407.2,610.3L405.1,609.5L405.4,608.9L406.5,606.8L410.3,606.3Z" data-c="E09000010" data-n="Enfield" data-p="21.2" data-k="1090" data-r="London"></path>
+<path class="la" d="M439,603L429,609L431,613L427,613L419,613L417,611L417,607L418,598L421,597L423,601L427,595L428,592L440,597Z" data-c="E07000072" data-n="Epping Forest" data-p="22.0" data-k="990" data-r="East of England"></path>
+<path class="la" d="M404,645L401,649L398,645L402,640Z" data-c="E07000208" data-n="Epsom and Ewell" data-p="13.6" data-k="370" data-r="South East"></path>
+<path class="la" d="M323,479L318,472L329,468L333,480L331,482L328,482Z" data-c="E07000036" data-n="Erewash" data-p="7.6" data-k="510" data-r="East Midlands"></path>
+<path class="la" d="M187,717L187,717L186,717L180,709L187,710L187,716Z" data-c="E07000041" data-n="Exeter" data-p="19.7" data-k="1410" data-r="South West"></path>
+<path class="la" d="M343,698L341,699L341,699L339,702L332,695L335,693L345,697L345,699L345,699Z" data-c="E07000087" data-n="Fareham" data-p="11.3" data-k="720" data-r="South East"></path>
+<path class="la" d="M402,516L402,513L413,510L412,503L416,497L425,494L424,500L430,518L417,532L411,519L407,521Z" data-c="E07000010" data-n="Fenland" data-p="10.8" data-k="400" data-r="East of England"></path>
+<path class="la" d="M214,442L225,449L222,455L212,461L208,453L203,452L194,435L197,431L200,432L216,445Z" data-c="W06000005" data-n="Flintshire" data-p="7.2" data-k="930" data-r="Wales"></path>
+<path class="la" d="M478,686L472,679L475,672L485,671L488,663L486,658L496,658L501,666L487,675L486,687Z" data-c="E07000112" data-n="Folkestone and Hythe" data-p="21.3" data-k="640" data-r="South East"></path>
+<path class="la" d="M242,595L256,587L252,580L253,574L262,574L267,579L262,592L259,602L249,610L249,610L241,616L241,616L241,615L239,605Z" data-c="E07000080" data-n="Forest of Dean" data-p="5.6" data-k="340" data-r="South West"></path>
+<path class="la" d="M217,386L220,381L226,377L231,382L233,389L227,391Z" data-c="E07000119" data-n="Fylde" data-p="11.9" data-k="530" data-r="North West"></path>
+<path class="la" d="M310,268L303,265L294,266L297,257L311,259L313,263Z" data-c="E08000037" data-n="Gateshead" data-p="21.2" data-k="1410" data-r="North East"></path>
+<path class="la" d="M343,474L336,466L334,460L338,457L342,460L348,470Z" data-c="E07000173" data-n="Gedling" data-p="13.3" data-k="330" data-r="East Midlands"></path>
+<path class="la" d="M272,592L265,594L272,589Z" data-c="E07000081" data-n="Gloucester" data-p="10.3" data-k="1080" data-r="South West"></path>
+<path class="la" d="M342,699L342,699L344,706L339,702L341,699Z" data-c="E07000088" data-n="Gosport" data-p="11.4" data-k="190" data-r="South East"></path>
+<path class="la" d="M449,630L451,634L445,641L441,644L441,638L439,630Z" data-c="E07000109" data-n="Gravesham" data-p="15.4" data-k="300" data-r="South East"></path>
+<path class="la" d="M521,505L514,496L522,489L526,499L527,511L520,512Z" data-c="E07000145" data-n="Great Yarmouth" data-p="10.6" data-k="450" data-r="East of England"></path>
+<path class="la" d="M425.9,625L426.4,628.7L424.7,628.9L423.6,629.9L424.1,632.4L423.3,633.6L422.4,634.5L420.2,632.7L418.9,630.8L419.3,629.3L417.2,630L416.9,629L418.2,627.7L418.1,626.1L418.2,626.1L419.5,627.1L421.9,627L423.2,626.8L424,625.5L424.2,625.3Z" data-c="E09000011" data-n="Greenwich" data-p="31.3" data-k="990" data-r="London"></path>
+<path class="la" d="M369,657L370,651L376,648L382,651L388,646L392,649L391,662L383,658L370,660Z" data-c="E07000209" data-n="Guildford" data-p="10.0" data-k="1300" data-r="South East"></path>
+<path class="la" d="M190,470L189,483L182,487L181,500L174,504L167,503L165,511L159,515L158,515L150,517L146,509L151,498L145,488L146,479L141,477L130,479L122,486L106,489L113,477L122,474L133,464L136,454L148,443L156,442L160,445L154,457L156,467L162,466L167,474L181,467L182,472Z" data-c="W06000002" data-n="Gwynedd" data-p="6.0" data-k="760" data-r="Wales"></path>
+<path class="la" d="M412.7,624.4L412.3,624.5L411.5,623.2L412.8,621.6L410.9,619.8L411.3,618.9L413.7,618.4L414.7,619.9L415.9,620.1L416.7,621.1L416.8,621.9L413.8,622.9Z" data-c="E09000012" data-n="Hackney" data-p="10.0" data-k="4650" data-r="London"></path>
+<path class="la" d="M246,435L236,436L241,431ZM240,428L240,431L231,434L232,432L236,426Z" data-c="E06000006" data-n="Halton" data-p="15.4" data-k="760" data-r="North West"></path>
+<path class="la" d="M401.6,623.6L402.8,623.8L403.8,626.9L406.3,629.3L405.5,630.8L403.4,630L402.8,628.3L401.9,628.3L401.2,626.9Z" data-c="E09000013" data-n="Hammersmith and Fulham" data-p="8.5" data-k="3590" data-r="London"></path>
+<path class="la" d="M345,509L346,505L352,502L361,506L361,511L368,518L358,519L356,526L349,525L336,533L330,523L344,516Z" data-c="E07000131" data-n="Harborough" data-p="1.7" data-k="740" data-r="East Midlands"></path>
+<path class="la" d="M406.4,619.2L407.3,617.7L407.3,615.7L407.7,616.5L408.4,615.1L414.9,615.3L413.7,618.4L411.3,618.9L410.9,619.8L409.8,618.7L408.3,619.5Z" data-c="E09000014" data-n="Haringey" data-p="14.6" data-k="1160" data-r="London"></path>
+<path class="la" d="M427,595L423,601L421,597Z" data-c="E07000073" data-n="Harlow" data-p="19.9" data-k="460" data-r="East of England"></path>
+<path class="la" d="M393.6,614.1L396.6,612.2L397.4,612.6L400,616.4L398.4,617.2L399,618L397.5,617.9L396.1,618.8L396.4,619.8L395.6,621.2L392.8,621.4L390.8,615.3Z" data-c="E09000015" data-n="Harrow" data-p="42.8" data-k="1620" data-r="London"></path>
+<path class="la" d="M363,644L367,646L368,647L365,655L362,659L353,661L353,643Z" data-c="E07000089" data-n="Hart" data-p="30.2" data-k="550" data-r="South East"></path>
+<path class="la" d="M330,285L334,287L333,294L321,293Z" data-c="E06000001" data-n="Hartlepool" data-p="19.8" data-k="500" data-r="North East"></path>
+<path class="la" d="M465,692L454,695L456,690Z" data-c="E07000062" data-n="Hastings" data-p="16.2" data-k="500" data-r="South East"></path>
+<path class="la" d="M351,700L349,697L351,692L357,695L357,698Z" data-c="E07000090" data-n="Havant" data-p="14.5" data-k="520" data-r="South East"></path>
+<path class="la" d="M438.6,618.7L440.1,621.4L435.5,622.5L435.5,624L434.8,624L434.5,622.9L433.7,623.9L434.1,625.1L433.1,625.3L433.3,626L432.3,626.4L432.2,627.1L430.6,627.4L429.9,625.5L428.6,624.9L430.5,620.5L430.1,619.1L428.6,619.6L427.5,618.8L427.5,615.6L426.7,613L430.9,612.7L432.4,611.9L434.3,613.3L435.2,614.3L434.5,615.1L435.6,615.2L437.1,619Z" data-c="E09000016" data-n="Havering" data-p="16.6" data-k="870" data-r="London"></path>
+<path class="la" d="M244,543L243,550L257,547L257,560L262,561L262,574L253,574L252,580L256,587L242,595L227,583L221,586L215,578L210,561L214,551L219,548L222,539L229,534L238,543Z" data-c="E06000019" data-n="Herefordshire" data-p="5.2" data-k="1360" data-r="West Midlands"></path>
+<path class="la" d="M400,603L407,607L405,609L397,613L394,614L393,613L393,607Z" data-c="E07000098" data-n="Hertsmere" data-p="6.2" data-k="970" data-r="East of England"></path>
+<path class="la" d="M285,446L282,430L282,423L286,415L289,412L295,413L296,418L306,427L303,434L295,437L297,442L290,448Z" data-c="E07000037" data-n="High Peak" data-p="6.4" data-k="470" data-r="East Midlands"></path>
+<path class="la" d="M384.3,630.9L385.5,628.1L385.9,626.8L385,623.4L386.2,621.2L384.5,616.9L384.6,613.5L387.3,615.5L388.4,614.6L390.8,615.3L392.8,621.4L391.4,622.2L391.6,622.8L390,623.1L393,624.2L391,627.4L390.4,629.3L390.8,630.6L388.7,632.4L387.7,632.1Z" data-c="E09000017" data-n="Hillingdon" data-p="20.0" data-k="2550" data-r="London"></path>
+<path class="la" d="M336,504L328,516L328,522L322,518L319,517L313,512L313,504L326,503L331,499Z" data-c="E07000132" data-n="Hinckley and Bosworth" data-p="9.4" data-k="500" data-r="East Midlands"></path>
+<path class="la" d="M404,695L404,695L396,694L383,692L387,671L391,670L402,666L405,671Z" data-c="E07000227" data-n="Horsham" data-p="14.0" data-k="890" data-r="South East"></path>
+<path class="la" d="M392.3,635.6L387.9,634.1L387.7,632.1L388.7,632.4L390.8,630.6L390.4,629.3L391,627.4L393.4,628.3L394.7,627.4L397.3,628L398.5,627L399.4,626.8L400.3,627.7L401.2,626.9L401.9,628.3L401,630.2L398.7,628.5L396.5,631.8L393.4,631.8L392.4,632.7L393.8,633.5Z" data-c="E09000018" data-n="Hounslow" data-p="12.2" data-k="2040" data-r="London"></path>
+<path class="la" d="M394,389L383,390L385,383L390,380Z" data-c="E06000010" data-n="Hull" data-p="29.0" data-k="1700" data-r="Yorkshire and the Humber"></path>
+<path class="la" d="M387,512L395,520L402,516L407,521L411,519L417,532L418,535L412,540L403,552L409,554L401,557L399,554L397,548L391,549L391,544L385,540L382,534L391,528L391,520Z" data-c="E07000011" data-n="Huntingdonshire" data-p="5.6" data-k="1080" data-r="East of England"></path>
+<path class="la" d="M258,394L254,386L262,384L264,389Z" data-c="E07000120" data-n="Hyndburn" data-p="11.0" data-k="340" data-r="North West"></path>
+<path class="la" d="M492,567L492,566L492,566L489,563L492,560L494,568Z" data-c="E07000202" data-n="Ipswich" data-p="8.1" data-k="1260" data-r="East of England"></path>
+<path class="la" d="M130,422L138,424L143,437L154,435L142,448L133,453L127,451L119,437L120,424Z" data-c="W06000001" data-n="Isle of Anglesey" data-p="11.0" data-k="320" data-r="Wales"></path>
+<path class="la" d="M332,707L346,712L349,715L341,725L333,727L321,718L314,718L318,714Z" data-c="E06000046" data-n="Isle of Wight" data-p="25.4" data-k="690" data-r="South East"></path>
+<path class="la" d="M-13,794L-13,794L-13,794Z" data-c="E06000053" data-n="Isles of Scilly" data-p="13.1" data-k="20" data-r="South West"></path>
+<path class="la" d="M412.3,624.5L411,624.8L409.8,623.5L408.3,619.5L409.8,618.7L410.9,619.8L412.8,621.6L411.5,623.2Z" data-c="E09000019" data-n="Islington" data-p="14.8" data-k="5420" data-r="London"></path>
+<path class="la" d="M402.8,623.8L403.6,624L406.1,627.2L407.5,626.6L408.1,628.5L406.3,629.3L403.8,626.9Z" data-c="E09000020" data-n="Kensington and Chelsea" data-p="19.3" data-k="2870" data-r="London"></path>
+<path class="la" d="M443,526L438,519L430,518L424,500L425,494L431,490L430,486L441,481L444,471L463,467L464,479L459,487L460,494L449,499L449,510L454,515L452,523Z" data-c="E07000146" data-n="King&#x27;s Lynn and West Norfolk" data-p="5.1" data-k="620" data-r="East of England"></path>
+<path class="la" d="M396.6,645.5L396.6,643.4L398,640.2L397.3,638.5L397.8,637.6L397.6,634.4L399,634.7L399.3,635.7L401.4,633.8L401.6,634.3L402.5,638.9L402.2,639.9L401.1,639.9L399.5,641.6L398.2,644.8Z" data-c="E09000021" data-n="Kingston upon Thames" data-p="10.7" data-k="1250" data-r="London"></path>
+<path class="la" d="M295,413L289,412L283,403L299,395L298,391L304,388L311,393L307,399L310,404L308,409Z" data-c="E08000034" data-n="Kirklees" data-p="9.2" data-k="2810" data-r="Yorkshire and the Humber"></path>
+<path class="la" d="M236,426L232,432L225,418L227,415L231,417Z" data-c="E08000011" data-n="Knowsley" data-p="23.8" data-k="420" data-r="North West"></path>
+<path class="la" d="M410.6,625.7L410.8,625.7L410.9,628.9L412.2,630.3L411.5,631.9L413.1,635.2L413.1,635.2L410.8,635L409.9,636.2L408.5,636.1L409,635.5L409.2,633L408.7,633L408.1,630.5L409.5,628.3Z" data-c="E09000022" data-n="Lambeth" data-p="11.3" data-k="2050" data-r="London"></path>
+<path class="la" d="M231,344L233,341L241,345L243,341L254,338L248,349L254,358L247,361L243,368L233,365L228,368L228,368L228,368L226,358L233,349Z" data-c="E07000121" data-n="Lancaster" data-p="17.4" data-k="810" data-r="North West"></path>
+<path class="la" d="M300,372L319,371L325,368L327,372L324,377L328,389L311,393L304,388Z" data-c="E08000035" data-n="Leeds" data-p="18.6" data-k="8220" data-r="Yorkshire and the Humber"></path>
+<path class="la" d="M346,505L345,509L340,512L337,505Z" data-c="E06000016" data-n="Leicester" data-p="3.5" data-k="2090" data-r="East Midlands"></path>
+<path class="la" d="M418,701L418,697L411,692L412,683L419,680L428,689L427,699L431,705Z" data-c="E07000063" data-n="Lewes" data-p="19.5" data-k="670" data-r="South East"></path>
+<path class="la" d="M420.2,632.7L420.7,634.7L420,634L417.7,635.8L416.3,634.5L413.4,634.6L414.1,632.2L415.4,631.4L414.5,627.9L415.9,627.3L416.6,628.3L416.8,628.9L416.9,629L417.2,630L419.3,629.3L418.9,630.8Z" data-c="E09000023" data-n="Lewisham" data-p="20.1" data-k="750" data-r="London"></path>
+<path class="la" d="M303,498L310,501L311,502L307,505L302,506L304,513L298,513L293,513L287,505L288,493L287,490L296,492Z" data-c="E07000194" data-n="Lichfield" data-p="20.2" data-k="610" data-r="West Midlands"></path>
+<path class="la" d="M380,443L376,448L374,441Z" data-c="E07000138" data-n="Lincoln" data-p="8.3" data-k="840" data-r="East Midlands"></path>
+<path class="la" d="M232,432L231,434L222,429L220,422L225,418Z" data-c="E08000012" data-n="Liverpool" data-p="18.0" data-k="4730" data-r="North West"></path>
+<path class="la" d="M391,583L393,587L389,590L383,585Z" data-c="E06000032" data-n="Luton" data-p="10.8" data-k="1140" data-r="East of England"></path>
+<path class="la" d="M454,643L459,643L463,643L472,652L462,663L451,663L445,658Z" data-c="E07000110" data-n="Maidstone" data-p="20.5" data-k="1280" data-r="South East"></path>
+<path class="la" d="M456,598L464,591L473,594L473,599L480,599L479,610L469,611L461,610Z" data-c="E07000074" data-n="Maldon" data-p="7.0" data-k="360" data-r="East of England"></path>
+<path class="la" d="M262,574L262,561L257,560L257,547L243,550L244,543L257,537L256,542L267,541L269,552L271,558L275,565L273,571L274,576L267,579Z" data-c="E07000235" data-n="Malvern Hills" data-p="15.4" data-k="470" data-r="West Midlands"></path>
+<path class="la" d="M268,431L264,431L267,419L267,414L269,412L272,413L273,417L274,421Z" data-c="E08000003" data-n="Manchester" data-p="15.0" data-k="8370" data-r="North West"></path>
+<path class="la" d="M331,451L334,445L341,443L337,456Z" data-c="E07000174" data-n="Mansfield" data-p="21.4" data-k="720" data-r="East Midlands"></path>
+<path class="la" d="M461,637L459,643L454,643L445,641L451,634L449,630L449,627L465,628L454,635Z" data-c="E06000035" data-n="Medway" data-p="15.6" data-k="1090" data-r="South East"></path>
+<path class="la" d="M371,494L360,498L361,506L352,502L348,501L346,488L350,487L360,472L363,470L363,478Z" data-c="E07000133" data-n="Melton" data-p="3.0" data-k="170" data-r="East Midlands"></path>
+<path class="la" d="M198,614L189,601L190,595L197,598L201,610Z" data-c="W06000024" data-n="Merthyr Tydfil" data-p="6.1" data-k="300" data-r="Wales"></path>
+<path class="la" d="M409.9,636.2L410.1,637.7L409.5,638.5L407.4,638.8L406.8,638.3L405.9,639.2L404.5,638.9L403.9,639.8L402.5,638.9L401.6,634.3L405.6,633.2L406.2,635L409,635.5L408.5,636.1Z" data-c="E09000024" data-n="Merton" data-p="27.6" data-k="1270" data-r="London"></path>
+<path class="la" d="M209,694L203,694L194,702L180,705L179,710L173,707L168,714L163,712L162,701L158,700L157,692L176,691L178,681L193,680L201,689L207,688Z" data-c="E07000042" data-n="Mid Devon" data-p="9.6" data-k="300" data-r="South West"></path>
+<path class="la" d="M478,531L482,530L494,532L502,526L507,539L497,545L498,548L492,560L489,563L478,559L477,554L469,553L470,541L476,537Z" data-c="E07000203" data-n="Mid Suffolk" data-p="4.9" data-k="520" data-r="East of England"></path>
+<path class="la" d="M411,692L404,695L405,671L410,665L421,665L417,670L419,680L412,683Z" data-c="E07000228" data-n="Mid Sussex" data-p="14.5" data-k="950" data-r="South East"></path>
+<path class="la" d="M332,299L336,308L330,307L329,299Z" data-c="E06000002" data-n="Middlesbrough" data-p="20.6" data-k="950" data-r="North East"></path>
+<path class="la" d="M377,563L372,569L373,578L363,576L359,570L358,563L369,554L372,554Z" data-c="E06000042" data-n="Milton Keynes" data-p="38.9" data-k="2720" data-r="South East"></path>
+<path class="la" d="M392,649L397,645L398,645L401,649L407,662L402,666L391,670L391,662Z" data-c="E07000210" data-n="Mole Valley" data-p="7.8" data-k="770" data-r="South East"></path>
+<path class="la" d="M215,578L221,586L227,583L242,595L239,605L241,615L238,621L231,624L230,613L221,616L215,599L210,598L209,595L216,588Z" data-c="W06000021" data-n="Monmouthshire" data-p="10.6" data-k="740" data-r="Wales"></path>
+<path class="la" d="M157,599L166,598L168,601L175,598L180,602L181,613L175,614L175,625L168,625L160,616L163,607Z" data-c="W06000012" data-n="Neath Port Talbot" data-p="4.2" data-k="800" data-r="Wales"></path>
+<path class="la" d="M288,684L297,682L308,688L311,687L320,690L332,702L318,710L315,713L307,710L299,704L298,690L294,691Z" data-c="E07000091" data-n="New Forest" data-p="10.9" data-k="940" data-r="South East"></path>
+<path class="la" d="M363,470L360,472L354,464L348,470L342,460L338,457L337,456L341,443L346,440L351,445L362,447L362,442L369,442L366,449L366,461L361,467Z" data-c="E07000175" data-n="Newark and Sherwood" data-p="15.8" data-k="790" data-r="East Midlands"></path>
+<path class="la" d="M297,257L300,248L305,248L311,257L311,259Z" data-c="E08000021" data-n="Newcastle upon Tyne" data-p="18.0" data-k="3970" data-r="North East"></path>
+<path class="la" d="M272,460L269,461L270,471L260,481L254,479L260,469L260,464L270,457Z" data-c="E07000195" data-n="Newcastle-under-Lyme" data-p="9.1" data-k="700" data-r="West Midlands"></path>
+<path class="la" d="M422.4,621.6L422.8,623.2L424.1,623.6L424.5,624.7L422.1,626.6L419.4,626.5L418.4,625.7L416.5,622.7L416.8,621.9L416.7,621.1L419.2,620.5L420.9,620.6L421.2,619.6Z" data-c="E09000025" data-n="Newham" data-p="8.5" data-k="1580" data-r="London"></path>
+<path class="la" d="M213,629L211,624L213,616L221,616L230,613L231,624L219,624Z" data-c="W06000022" data-n="Newport" data-p="13.7" data-k="950" data-r="Wales"></path>
+<path class="la" d="M178,681L176,691L157,692L151,690L149,681L139,677L136,661L146,658L170,657L170,663L162,663L164,670L175,676Z" data-c="E07000043" data-n="North Devon" data-p="7.3" data-k="530" data-r="South West"></path>
+<path class="la" d="M324,457L316,454L313,449L309,436L321,432L327,433L330,436L327,439L318,438L317,445L327,443Z" data-c="E07000038" data-n="North East Derbyshire" data-p="8.1" data-k="420" data-r="East Midlands"></path>
+<path class="la" d="M412,410L406,411L403,420L397,415L398,406L392,402L397,399Z" data-c="E06000012" data-n="North East Lincolnshire" data-p="5.3" data-k="740" data-r="Yorkshire and the Humber"></path>
+<path class="la" d="M393,587L391,583L392,576L398,576L406,565L408,571L415,566L421,572L421,575L415,574L406,582L405,587L405,589L399,591L394,590Z" data-c="E07000099" data-n="North Hertfordshire" data-p="28.7" data-k="1030" data-r="East of England"></path>
+<path class="la" d="M400,459L400,467L397,475L396,477L385,479L379,471L379,462L366,461L366,449L369,442L374,441L376,448L380,443L389,443L393,448Z" data-c="E07000139" data-n="North Kesteven" data-p="13.3" data-k="570" data-r="East Midlands"></path>
+<path class="la" d="M355,400L366,394L371,391L377,395L391,391L397,399L392,402L389,407L383,406L385,412L381,417L371,419L371,413L364,412L360,419L351,414Z" data-c="E06000013" data-n="North Lincolnshire" data-p="8.0" data-k="560" data-r="Yorkshire and the Humber"></path>
+<path class="la" d="M477,485L467,484L465,489L459,487L464,479L463,467L469,469L479,467L496,470L505,475L522,489L514,496L506,495L498,483L491,481Z" data-c="E07000147" data-n="North Norfolk" data-p="13.9" data-k="430" data-r="East of England"></path>
+<path class="la" d="M368,518L382,506L382,506L382,512L387,512L391,520L391,528L382,534L385,540L378,547L373,546L372,554L369,554L363,548L363,537L357,532L356,526L358,519Z" data-c="E06000061" data-n="North Northamptonshire" data-p="10.5" data-k="1770" data-r="East Midlands"></path>
+<path class="la" d="M246,640L239,649L234,648L225,652L219,650L221,642L228,635L230,633L235,630L235,630L237,629L237,629L240,631Z" data-c="E06000024" data-n="North Somerset" data-p="16.8" data-k="1220" data-r="South West"></path>
+<path class="la" d="M305,248L315,247L318,253L315,257L311,257Z" data-c="E08000022" data-n="North Tyneside" data-p="14.9" data-k="1350" data-r="North East"></path>
+<path class="la" d="M313,504L313,512L319,517L313,519L314,526L311,527L305,529L300,521L298,513L304,513L307,505L311,502Z" data-c="E07000218" data-n="North Warwickshire" data-p="9.6" data-k="390" data-r="West Midlands"></path>
+<path class="la" d="M328,482L331,482L332,489L327,495L331,499L326,503L313,504L311,502L310,501Z" data-c="E07000134" data-n="North West Leicestershire" data-p="0.3" data-k="740" data-r="East Midlands"></path>
+<path class="la" d="M302,305L309,307L316,313L318,310L322,312L330,307L336,308L343,309L354,309L358,302L371,309L378,319L385,334L392,341L395,343L394,346L381,343L382,346L366,358L354,359L351,362L342,355L335,361L334,370L340,375L351,374L350,376L353,391L340,397L344,398L332,402L333,392L328,389L324,377L327,372L325,368L319,371L300,372L291,367L285,367L284,376L280,378L272,367L261,363L260,357L254,358L248,349L254,338L263,335L264,328L260,324L264,318L272,313L280,311L285,314L296,310Z" data-c="E06000065" data-n="North Yorkshire" data-p="15.9" data-k="4310" data-r="Yorkshire and the Humber"></path>
+<path class="la" d="M294,266L288,273L283,269L274,272L269,279L263,278L257,271L252,276L247,272L249,263L246,259L253,251L242,241L240,235L248,222L253,218L259,218L261,213L268,210L270,205L268,196L262,188L267,186L280,169L290,184L304,194L307,203L306,214L310,221L309,226L313,235L315,247L305,248L300,248L297,257Z" data-c="E06000057" data-n="Northumberland" data-p="15.3" data-k="1670" data-r="North East"></path>
+<path class="la" d="M495,501L500,503L495,501Z" data-c="E07000148" data-n="Norwich" data-p="3.8" data-k="1780" data-r="East of England"></path>
+<path class="la" d="M343,474L335,479L334,468L336,466Z" data-c="E06000018" data-n="Nottingham" data-p="6.2" data-k="2600" data-r="East Midlands"></path>
+<path class="la" d="M319,517L322,518L320,527L314,526L313,519Z" data-c="E07000219" data-n="Nuneaton and Bedworth" data-p="13.6" data-k="350" data-r="West Midlands"></path>
+<path class="la" d="M340,512L345,509L344,516Z" data-c="E07000135" data-n="Oadby and Wigston" data-p="3.0" data-k="200" data-r="East Midlands"></path>
+<path class="la" d="M289,412L286,415L280,412L273,417L272,413L274,407L282,402L283,403Z" data-c="E08000004" data-n="Oldham" data-p="4.4" data-k="1260" data-r="North West"></path>
+<path class="la" d="M331,599L334,598L339,600L335,605Z" data-c="E07000178" data-n="Oxford" data-p="26.3" data-k="1160" data-r="South East"></path>
+<path class="la" d="M108,563L110,568L117,569L121,575L111,583L106,583L106,591L112,594L111,602L105,611L96,611L91,616L82,614L79,606L88,606L70,600L80,597L78,587L66,587L67,582L82,576L83,570L90,574L94,570Z" data-c="W06000009" data-n="Pembrokeshire" data-p="5.2" data-k="610" data-r="Wales"></path>
+<path class="la" d="M276,383L264,382L263,377L269,374L272,367L280,378L280,381Z" data-c="E07000122" data-n="Pendle" data-p="8.6" data-k="550" data-r="North West"></path>
+<path class="la" d="M412,503L413,510L402,513L402,516L395,520L387,512L382,512L382,506L392,502L400,502Z" data-c="E06000031" data-n="Peterborough" data-p="11.7" data-k="1400" data-r="East of England"></path>
+<path class="la" d="M141,751L136,746L139,743L142,741L148,747Z" data-c="E06000026" data-n="Plymouth" data-p="9.5" data-k="1510" data-r="South West"></path>
+<path class="la" d="M351,700L345,699L345,697L349,697Z" data-c="E06000044" data-n="Portsmouth" data-p="13.9" data-k="920" data-r="South East"></path>
+<path class="la" d="M222,539L219,548L214,551L210,561L215,578L216,588L209,595L200,594L198,598L197,598L190,595L180,602L175,598L168,601L166,598L172,587L172,579L177,571L169,562L171,541L176,538L169,528L172,521L167,524L165,516L159,515L165,511L167,503L174,504L181,500L182,487L189,483L196,480L205,483L210,481L209,491L222,498L216,502L212,518L219,514L217,522L207,525L204,528L217,539Z" data-c="W06000023" data-n="Powys" data-p="8.7" data-k="910" data-r="Wales"></path>
+<path class="la" d="M233,389L233,389L231,382L243,374L246,386Z" data-c="E07000123" data-n="Preston" data-p="16.3" data-k="1240" data-r="North West"></path>
+<path class="la" d="M352,636L349,631L355,633Z" data-c="E06000038" data-n="Reading" data-p="11.4" data-k="1680" data-r="South East"></path>
+<path class="la" d="M419,612.7L422.5,615.2L426.7,613L427.5,615.6L426.1,617L426.5,618.5L425.7,620.1L424.1,621.4L422.4,621.6L421.2,619.6L420.9,620.6L419.2,620.5L418.5,616.6L419.1,614.5L418.2,613.8Z" data-c="E09000026" data-n="Redbridge" data-p="24.7" data-k="1370" data-r="London"></path>
+<path class="la" d="M336,308L332,299L333,299L336,293L345,298L358,302L354,309L343,309Z" data-c="E06000003" data-n="Redcar and Cleveland" data-p="26.8" data-k="650" data-r="North East"></path>
+<path class="la" d="M292,543L289,549L284,546Z" data-c="E07000236" data-n="Redditch" data-p="3.3" data-k="530" data-r="West Midlands"></path>
+<path class="la" d="M401,649L404,645L408,646L411,650L410,663L407,662Z" data-c="E07000211" data-n="Reigate and Banstead" data-p="9.8" data-k="840" data-r="South East"></path>
+<path class="la" d="M181,613L180,602L190,595L189,601L198,614L203,623L196,628L186,628L187,618Z" data-c="W06000016" data-n="Rhondda Cynon Taf" data-p="9.4" data-k="1300" data-r="Wales"></path>
+<path class="la" d="M254,386L249,388L246,386L243,374L243,368L247,361L254,358L260,357L261,363L272,367L269,374L263,377L264,382L262,384Z" data-c="E07000124" data-n="Ribble Valley" data-p="16.8" data-k="450" data-r="North West"></path>
+<path class="la" d="M397.3,638.5L396.6,638.8L394.5,636.7L392.9,637.1L392.3,635.6L393.8,633.5L392.4,632.7L393.4,631.8L396.5,631.8L398.7,628.5L401,630.2L401.9,628.3L402.8,628.3L403.4,630L402.7,629.9L402.7,630.9L401.2,631L401,631.9L402.2,633.1L401.4,633.8L399.3,635.7L399,634.7L397.6,634.4L397.8,637.6Z" data-c="E09000027" data-n="Richmond upon Thames" data-p="14.4" data-k="1470" data-r="London"></path>
+<path class="la" d="M266,404L274,396L280,396L282,402L274,407L272,413L269,412Z" data-c="E08000005" data-n="Rochdale" data-p="10.7" data-k="1030" data-r="North West"></path>
+<path class="la" d="M472,620L460,617L455,616L455,613L461,610L469,611Z" data-c="E07000075" data-n="Rochford" data-p="15.7" data-k="410" data-r="East of England"></path>
+<path class="la" d="M260,398L258,394L264,389L273,392L274,396L266,404Z" data-c="E07000125" data-n="Rossendale" data-p="21.0" data-k="420" data-r="North West"></path>
+<path class="la" d="M465,692L456,690L454,695L446,698L442,683L446,670L451,675L460,677L472,679L478,686L472,685Z" data-c="E07000064" data-n="Rother" data-p="20.3" data-k="400" data-r="South East"></path>
+<path class="la" d="M335,435L330,436L327,433L318,418L327,414L332,422L340,425Z" data-c="E08000018" data-n="Rotherham" data-p="9.6" data-k="1180" data-r="Yorkshire and the Humber"></path>
+<path class="la" d="M336,533L338,537L335,548L322,543L319,536L320,527L322,518L328,522L330,523Z" data-c="E07000220" data-n="Rugby" data-p="12.9" data-k="490" data-r="West Midlands"></path>
+<path class="la" d="M377,639L383,634L388,640L387,644L382,644Z" data-c="E07000212" data-n="Runnymede" data-p="9.1" data-k="700" data-r="South East"></path>
+<path class="la" d="M335,479L343,474L348,470L354,464L360,472L350,487L346,488L336,491L332,489L331,482L333,480Z" data-c="E07000176" data-n="Rushcliffe" data-p="10.1" data-k="650" data-r="East Midlands"></path>
+<path class="la" d="M365,655L368,647L370,651L369,657Z" data-c="E07000092" data-n="Rushmoor" data-p="13.6" data-k="800" data-r="South East"></path>
+<path class="la" d="M382,506L368,518L361,511L361,506L360,498L371,494L386,499Z" data-c="E06000017" data-n="Rutland" data-p="8.2" data-k="320" data-r="East Midlands"></path>
+<path class="la" d="M255,425L253,420L255,413L262,412L267,414L267,419L258,420Z" data-c="E08000006" data-n="Salford" data-p="12.9" data-k="2290" data-r="North West"></path>
+<path class="la" d="M290,517L284,527L280,517L281,517Z" data-c="E08000028" data-n="Sandwell" data-p="13.3" data-k="910" data-r="West Midlands"></path>
+<path class="la" d="M223,395L218,406L227,415L225,418L220,422L214,410L217,403Z" data-c="E08000014" data-n="Sefton" data-p="2.6" data-k="1130" data-r="North West"></path>
+<path class="la" d="M430,665L423,665L422,649L428,643L428,636L429,636L441,638L441,644L438,642L434,660Z" data-c="E07000111" data-n="Sevenoaks" data-p="6.5" data-k="880" data-r="South East"></path>
+<path class="la" d="M309,436L306,427L296,418L303,415L318,418L327,433L321,432Z" data-c="E08000039" data-n="Sheffield" data-p="14.5" data-k="3690" data-r="Yorkshire and the Humber"></path>
+<path class="la" d="M244,543L238,543L229,534L222,539L217,539L204,528L207,525L217,522L219,514L212,518L216,502L222,498L209,491L210,481L221,472L230,475L233,480L237,477L237,471L239,470L250,475L260,469L254,479L260,481L257,488L247,490L241,495L244,501L256,510L260,497L264,498L268,503L266,527L261,529L257,537Z" data-c="E06000051" data-n="Shropshire" data-p="8.4" data-k="1810" data-r="West Midlands"></path>
+<path class="la" d="M385,628L384,631L383,631L375,628L376,624Z" data-c="E06000039" data-n="Slough" data-p="5.9" data-k="730" data-r="South East"></path>
+<path class="la" d="M300,521L305,529L311,527L310,534L299,539L293,537L293,533Z" data-c="E08000029" data-n="Solihull" data-p="13.0" data-k="1600" data-r="West Midlands"></path>
+<path class="la" d="M215,692L209,694L207,688L201,689L193,680L178,681L175,676L164,670L162,663L170,663L170,657L185,658L192,663L215,661L218,657L219,648L219,649L219,649L219,649L219,650L225,652L234,648L239,649L255,653L266,648L269,656L262,669L264,674L255,688L252,683L245,685L244,695L226,699L221,702L216,699Z" data-c="E06000066" data-n="Somerset" data-p="9.8" data-k="2990" data-r="South West"></path>
+<path class="la" d="M406,565L406,559L401,557L409,554L403,552L412,540L418,535L431,538L430,548L443,555L443,565L442,568L434,563L423,566L421,572L415,566L408,571ZM426,548L420,550L422,556L427,555Z" data-c="E07000012" data-n="South Cambridgeshire" data-p="25.7" data-k="1790" data-r="East of England"></path>
+<path class="la" d="M313,477L314,481L321,483L323,479L328,482L310,501L303,498L311,487L300,483L300,478L309,474Z" data-c="E07000039" data-n="South Derbyshire" data-p="8.1" data-k="310" data-r="East Midlands"></path>
+<path class="la" d="M266,637L251,637L251,630L240,625L249,610L249,610L259,614L259,619L266,619L267,621L268,626Z" data-c="E06000025" data-n="South Gloucestershire" data-p="11.1" data-k="1580" data-r="South West"></path>
+<path class="la" d="M138,743L137,743L138,742L138,741L140,739L148,739L153,735L157,738L159,731L166,739L178,738L175,743L183,749L174,758L168,767L158,763L153,755L147,757L141,751L148,747L142,741L139,743Z" data-c="E07000044" data-n="South Hams" data-p="4.9" data-k="760" data-r="South West"></path>
+<path class="la" d="M412,503L400,502L394,494L397,491L396,477L397,475L408,481L415,477L424,479L430,486L431,490L425,494L416,497Z" data-c="E07000140" data-n="South Holland" data-p="5.0" data-k="430" data-r="East Midlands"></path>
+<path class="la" d="M382,506L386,499L371,494L363,478L363,470L361,467L366,461L379,462L379,471L385,479L396,477L397,491L394,494L400,502L392,502L382,506Z" data-c="E07000141" data-n="South Kesteven" data-p="10.3" data-k="790" data-r="East Midlands"></path>
+<path class="la" d="M482,530L486,521L483,513L477,511L480,502L485,501L495,501L500,503L507,503L514,509L521,505L520,512L522,518L511,518L502,526L494,532Z" data-c="E07000149" data-n="South Norfolk" data-p="12.0" data-k="810" data-r="East of England"></path>
+<path class="la" d="M349,631L342,624L336,625L338,619L332,620L337,613L335,605L339,600L334,598L343,597L358,605L359,610L355,615L358,623L360,628L355,633Z" data-c="E07000179" data-n="South Oxfordshire" data-p="24.7" data-k="1140" data-r="South East"></path>
+<path class="la" d="M249,388L248,389L242,397L232,396L231,393L231,392L231,392L233,389L233,389L246,386Z" data-c="E07000126" data-n="South Ribble" data-p="9.9" data-k="530" data-r="North West"></path>
+<path class="la" d="M264,498L264,497L268,500L278,492L282,497L281,503L285,507L281,510L272,511L276,517L272,522L274,530L274,531L266,527L268,503Z" data-c="E07000196" data-n="South Staffordshire" data-p="17.3" data-k="560" data-r="West Midlands"></path>
+<path class="la" d="M311,259L311,257L315,257L318,254L322,261L313,263Z" data-c="E08000023" data-n="South Tyneside" data-p="14.9" data-k="640" data-r="North East"></path>
+<path class="la" d="M327,688L328,695L322,692L321,690L321,690Z" data-c="E06000045" data-n="Southampton" data-p="15.3" data-k="1410" data-r="South East"></path>
+<path class="la" d="M472,620L460,621L460,617Z" data-c="E06000033" data-n="Southend-on-Sea" data-p="10.5" data-k="750" data-r="East of England"></path>
+<path class="la" d="M410.8,625.7L412.7,626L413.2,626.1L413.9,626.6L415.6,625.9L415.9,627.3L414.5,627.9L415.4,631.4L414.1,632.2L413.4,634.6L413.1,635.2L411.5,631.9L412.2,630.3L410.9,628.9Z" data-c="E09000028" data-n="Southwark" data-p="9.8" data-k="4930" data-r="London"></path>
+<path class="la" d="M383,631L384,631L388,632L392,636L393,637L388,640L383,634Z" data-c="E07000213" data-n="Spelthorne" data-p="8.7" data-k="430" data-r="South East"></path>
+<path class="la" d="M390,591L394,590L399,591L400,603L393,607L392,607L389,602Z" data-c="E07000240" data-n="St Albans" data-p="22.7" data-k="1100" data-r="East of England"></path>
+<path class="la" d="M240,428L236,426L231,417L237,414L247,422Z" data-c="E08000013" data-n="St. Helens" data-p="13.1" data-k="740" data-r="North West"></path>
+<path class="la" d="M264,497L257,488L260,481L270,471L272,475L278,472L281,478L288,485L287,490L288,493L282,497L278,492L268,500Z" data-c="E07000197" data-n="Stafford" data-p="2.1" data-k="890" data-r="West Midlands"></path>
+<path class="la" d="M278,472L276,462L272,460L270,457L275,450L285,446L290,448L296,453L298,464L291,467L290,475L281,478Z" data-c="E07000198" data-n="Staffordshire Moorlands" data-p="7.1" data-k="250" data-r="West Midlands"></path>
+<path class="la" d="M405,587L406,582L405,587Z" data-c="E07000243" data-n="Stevenage" data-p="9.8" data-k="610" data-r="East of England"></path>
+<path class="la" d="M282,430L268,431L274,421L282,423Z" data-c="E08000007" data-n="Stockport" data-p="11.8" data-k="2440" data-r="North West"></path>
+<path class="la" d="M321,293L333,294L333,299L332,299L329,299L330,307L322,312L318,310L318,298Z" data-c="E06000004" data-n="Stockton-on-Tees" data-p="6.1" data-k="1390" data-r="North East"></path>
+<path class="la" d="M272,460L276,462L278,472L272,475L270,471L269,461Z" data-c="E06000021" data-n="Stoke-on-Trent" data-p="8.3" data-k="1430" data-r="West Midlands"></path>
+<path class="la" d="M335,548L328,557L318,565L316,576L310,580L307,577L307,572L300,564L295,559L288,559L289,549L292,543L293,537L299,539L300,543L312,553L322,543Z" data-c="E07000221" data-n="Stratford-on-Avon" data-p="17.8" data-k="1140" data-r="West Midlands"></path>
+<path class="la" d="M266,619L259,619L259,614L249,610L259,602L262,592L265,594L272,592L276,595L279,598L272,612L266,610Z" data-c="E07000082" data-n="Stroud" data-p="17.1" data-k="760" data-r="South West"></path>
+<path class="la" d="M323,270L314,277L310,268L313,263L322,261Z" data-c="E08000024" data-n="Sunderland" data-p="14.6" data-k="1520" data-r="North East"></path>
+<path class="la" d="M367,646L374,640L377,639L382,644L376,648L370,651L368,647Z" data-c="E07000214" data-n="Surrey Heath" data-p="8.0" data-k="750" data-r="South East"></path>
+<path class="la" d="M403.9,645.2L403.3,644.5L404.1,643.7L403.7,642.3L402.2,641.3L402.2,639.9L402.5,638.9L403.9,639.8L404.5,638.9L405.9,639.2L406.8,638.3L407.4,638.8L409.5,638.5L410.8,643.2L409,643.7L409,645.7L408.3,645.9L405.5,643.6Z" data-c="E09000029" data-n="Sutton" data-p="14.7" data-k="570" data-r="London"></path>
+<path class="la" d="M459,643L461,637L482,640L482,640L487,644L484,649L472,652L463,643ZM478,633L482,638L470,638L468,630Z" data-c="E07000113" data-n="Swale" data-p="10.2" data-k="730" data-r="South East"></path>
+<path class="la" d="M150,606L157,599L163,607L160,616L154,621L145,621L138,624L132,616L136,612L144,614Z" data-c="W06000011" data-n="Swansea" data-p="7.8" data-k="1750" data-r="Wales"></path>
+<path class="la" d="M306,609L306,618L312,627L299,631L294,623L299,611Z" data-c="E06000030" data-n="Swindon" data-p="6.9" data-k="1310" data-r="South West"></path>
+<path class="la" d="M286,415L282,423L274,421L273,417L280,412Z" data-c="E08000008" data-n="Tameside" data-p="10.4" data-k="960" data-r="North West"></path>
+<path class="la" d="M304,513L302,506L307,505Z" data-c="E07000199" data-n="Tamworth" data-p="15.2" data-k="430" data-r="West Midlands"></path>
+<path class="la" d="M423,665L421,665L410,665L410,663L411,650L419,645L422,649Z" data-c="E07000215" data-n="Tandridge" data-p="18.3" data-k="470" data-r="South East"></path>
+<path class="la" d="M183,734L178,738L166,739L159,731L158,725L163,715L168,714L173,707L179,710L180,709L186,717L188,725Z" data-c="E07000045" data-n="Teignbridge" data-p="10.9" data-k="750" data-r="South West"></path>
+<path class="la" d="M264,497L264,498L260,497L256,510L244,501L241,495L247,490L257,488Z" data-c="E06000020" data-n="Telford and Wrekin" data-p="4.4" data-k="920" data-r="West Midlands"></path>
+<path class="la" d="M481,587L481,587L481,587L478,579L484,575L487,576L501,576L494,584L502,584L492,594L486,595Z" data-c="E07000076" data-n="Tendring" data-p="3.0" data-k="710" data-r="East of England"></path>
+<path class="la" d="M319,647L323,646L324,658L332,661L324,670L322,678L326,682L327,688L321,690L320,690L311,687L310,670L306,660L316,656Z" data-c="E07000093" data-n="Test Valley" data-p="11.7" data-k="880" data-r="South East"></path>
+<path class="la" d="M284,586L278,582L275,588L280,590L276,595L272,592L272,589L265,594L262,592L267,579L274,576L273,571L282,575L290,571L295,575L289,580L293,586Z" data-c="E07000083" data-n="Tewkesbury" data-p="13.0" data-k="610" data-r="South West"></path>
+<path class="la" d="M502,641L500,636L514,634L509,643Z" data-c="E07000114" data-n="Thanet" data-p="20.9" data-k="640" data-r="South East"></path>
+<path class="la" d="M384,617L383,608L389,602L392,607L393,613L394,614L391,615Z" data-c="E07000102" data-n="Three Rivers" data-p="13.8" data-k="650" data-r="East of England"></path>
+<path class="la" d="M452,622L447,630L441,631L432,627L439,619L443,619Z" data-c="E06000034" data-n="Thurrock" data-p="5.3" data-k="480" data-r="East of England"></path>
+<path class="la" d="M445,641L454,643L445,658L434,660L438,642L441,644Z" data-c="E07000115" data-n="Tonbridge and Malling" data-p="7.6" data-k="1000" data-r="South East"></path>
+<path class="la" d="M183,734L181,746L183,749L175,743L178,738Z" data-c="E06000027" data-n="Torbay" data-p="34.7" data-k="520" data-r="South West"></path>
+<path class="la" d="M213,616L211,609L210,598L215,599L221,616Z" data-c="W06000020" data-n="Torfaen" data-p="12.5" data-k="620" data-r="Wales"></path>
+<path class="la" d="M128,719L124,705L121,701L120,689L114,688L116,678L131,682L138,676L138,676L139,677L149,681L151,690L157,692L158,700L151,696L140,700L135,709L135,716Z" data-c="E07000046" data-n="Torridge" data-p="27.1" data-k="260" data-r="South West"></path>
+<path class="la" d="M412.7,626L412.7,624.4L413.8,622.9L416.8,621.9L416.5,622.7L418.4,625.7L417.6,626L417.5,627.9L417.4,627.9L416.4,627.6L416,625.6L415,625.6L414.1,626.3L413.2,626.1Z" data-c="E09000030" data-n="Tower Hamlets" data-p="4.6" data-k="6290" data-r="London"></path>
+<path class="la" d="M257,428L255,425L258,420L267,419L264,431Z" data-c="E08000009" data-n="Trafford" data-p="19.3" data-k="2070" data-r="North West"></path>
+<path class="la" d="M460,677L451,675L446,670L441,666L430,665L434,660L445,658L451,663L462,663Z" data-c="E07000116" data-n="Tunbridge Wells" data-p="23.9" data-k="820" data-r="South East"></path>
+<path class="la" d="M421,572L423,566L434,563L442,568L447,585L451,588L439,594L440,597L428,592L429,584L425,585L421,575Z" data-c="E07000077" data-n="Uttlesford" data-p="13.1" data-k="890" data-r="East of England"></path>
+<path class="la" d="M177,631L186,628L196,628L208,635L207,639L196,642L181,639Z" data-c="W06000014" data-n="Vale of Glamorgan" data-p="17.7" data-k="640" data-r="Wales"></path>
+<path class="la" d="M312,627L306,618L306,609L308,609L325,607L330,598L331,599L335,605L337,613L332,620L338,619L336,625L330,622L313,626Z" data-c="E07000180" data-n="Vale of White Horse" data-p="24.4" data-k="1200" data-r="South East"></path>
+<path class="la" d="M328,389L333,392L332,402L325,406L319,403L310,404L307,399L311,393Z" data-c="E08000036" data-n="Wakefield" data-p="11.9" data-k="2000" data-r="Yorkshire and the Humber"></path>
+<path class="la" d="M285,507L287,505L293,513L290,517L281,517L281,510Z" data-c="E08000030" data-n="Walsall" data-p="10.3" data-k="990" data-r="West Midlands"></path>
+<path class="la" d="M416.7,610.9L419,611.4L419,612.7L418.2,613.8L419.1,614.5L418.5,616.6L419.2,620.5L416.7,621.1L415.9,620.1L414.7,619.9L413.7,618.4L414.9,615.3Z" data-c="E09000031" data-n="Waltham Forest" data-p="10.6" data-k="1110" data-r="London"></path>
+<path class="la" d="M403.4,630L405.5,630.8L406.3,629.3L408.1,628.5L409.5,628.3L408.1,630.5L408.7,633L409.2,633L409,635.5L406.2,635L405.6,633.2L401.6,634.3L401.4,633.8L402.2,633.1L401,631.9L401.2,631L402.7,630.9L402.7,629.9Z" data-c="E09000032" data-n="Wandsworth" data-p="13.5" data-k="1800" data-r="London"></path>
+<path class="la" d="M246,435L241,431L240,431L240,428L247,422L253,420L255,425L257,428L251,433Z" data-c="E06000007" data-n="Warrington" data-p="17.7" data-k="1990" data-r="North West"></path>
+<path class="la" d="M319,536L322,543L312,553L300,543L299,539L310,534Z" data-c="E07000222" data-n="Warwick" data-p="17.8" data-k="1410" data-r="West Midlands"></path>
+<path class="la" d="M393,607L393,613L392,607Z" data-c="E07000103" data-n="Watford" data-p="15.7" data-k="590" data-r="East of England"></path>
+<path class="la" d="M369,672L369,670L363,666L362,659L365,655L369,657L370,660L383,658L391,662L391,670L387,671Z" data-c="E07000216" data-n="Waverley" data-p="16.6" data-k="930" data-r="South East"></path>
+<path class="la" d="M443,701L437,700L435,707L431,705L427,699L428,689L419,680L417,670L421,665L423,665L430,665L441,666L446,670L442,683L446,698Z" data-c="E07000065" data-n="Wealden" data-p="16.0" data-k="970" data-r="South East"></path>
+<path class="la" d="M411,602L410,606L407,607L400,603L399,591L405,589L408,601Z" data-c="E07000241" data-n="Welwyn Hatfield" data-p="18.6" data-k="850" data-r="East of England"></path>
+<path class="la" d="M336,625L342,624L349,631L352,636L353,643L324,642L323,646L319,647L315,640L317,635L313,626L330,622Z" data-c="E06000037" data-n="West Berkshire" data-p="9.1" data-k="1520" data-r="South East"></path>
+<path class="la" d="M136,742L134,731L128,719L135,716L135,709L140,700L151,696L158,700L162,701L163,712L168,714L163,715L158,725L159,731L157,738L153,735L148,739L140,739L140,739L139,740Z" data-c="E07000047" data-n="West Devon" data-p="7.9" data-k="300" data-r="South West"></path>
+<path class="la" d="M232,396L233,403L240,405L237,414L231,417L227,415L218,406L223,395L223,395L229,391L230,392L231,393Z" data-c="E07000127" data-n="West Lancashire" data-p="1.9" data-k="660" data-r="North West"></path>
+<path class="la" d="M392,402L398,406L397,415L403,420L397,421L398,427L391,437L393,448L389,443L380,443L374,441L369,442L362,442L364,436L360,419L364,412L371,413L371,419L381,417L385,412L383,406L389,407Z" data-c="E07000142" data-n="West Lindsey" data-p="6.3" data-k="400" data-r="East Midlands"></path>
+<path class="la" d="M369,554L358,563L359,570L353,566L342,570L343,573L332,577L329,566L334,565L328,557L335,548L338,537L336,533L349,525L356,526L357,532L363,537L363,548Z" data-c="E06000062" data-n="West Northamptonshire" data-p="5.3" data-k="2670" data-r="East Midlands"></path>
+<path class="la" d="M308,609L303,599L310,582L307,577L310,580L316,576L326,578L331,585L330,598L325,607Z" data-c="E07000181" data-n="West Oxfordshire" data-p="21.0" data-k="990" data-r="South East"></path>
+<path class="la" d="M443,555L448,554L449,548L438,546L439,541L443,545L448,542L443,537L439,529L443,526L452,523L461,523L458,528L469,528L478,531L476,537L470,541L469,553L461,552L457,558L459,562L449,566L443,565Z" data-c="E07000245" data-n="West Suffolk" data-p="10.0" data-k="1110" data-r="East of England"></path>
+<path class="la" d="M410.6,625.1L410.6,625.7L409.5,628.3L408.1,628.5L407.5,626.6L406.1,627.2L403.6,624L404.3,623.5L404.9,624L405.2,623.1L407.8,622.9L409.4,625.4Z" data-c="E09000033" data-n="Westminster" data-p="17.2" data-k="20620" data-r="London"></path>
+<path class="la" d="M263,278L261,288L265,293L264,299L272,306L272,313L264,318L260,324L264,328L263,335L254,338L243,341L241,345L233,341L231,344L225,346L218,341L211,352L207,353L208,340L206,333L206,328L210,314L220,309L221,299L216,297L217,288L222,288L222,279L230,273L239,275L247,272L252,276L257,271Z" data-c="E06000064" data-n="Westmorland and Furness" data-p="10.9" data-k="1540" data-r="North West"></path>
+<path class="la" d="M253,420L247,422L237,414L240,405L244,406L250,413L255,413Z" data-c="E08000010" data-n="Wigan" data-p="20.0" data-k="1360" data-r="North West"></path>
+<path class="la" d="M266,648L266,637L268,626L267,621L275,620L281,611L288,615L299,611L294,623L299,631L312,627L313,626L317,635L315,640L319,647L316,656L306,660L310,670L311,687L308,688L297,682L288,684L279,689L269,675L264,674L262,669L269,656Z" data-c="E06000054" data-n="Wiltshire" data-p="3.9" data-k="3160" data-r="South West"></path>
+<path class="la" d="M349,697L345,697L335,693L333,685L326,682L322,678L324,670L332,661L339,662L344,667L348,680L351,692Z" data-c="E07000094" data-n="Winchester" data-p="20.6" data-k="1390" data-r="South East"></path>
+<path class="la" d="M374,640L375,632L365,634L362,623L370,620L375,628L383,631L383,634L377,639Z" data-c="E06000040" data-n="Windsor and Maidenhead" data-p="21.3" data-k="1330" data-r="South East"></path>
+<path class="la" d="M225,436L213,437L207,428L217,422Z" data-c="E08000015" data-n="Wirral" data-p="2.9" data-k="1110" data-r="North West"></path>
+<path class="la" d="M387,644L388,646L382,651L376,648L382,644Z" data-c="E07000217" data-n="Woking" data-p="23.9" data-k="740" data-r="South East"></path>
+<path class="la" d="M365,634L363,644L353,643L353,643L352,636L355,633L360,628L358,623L362,623Z" data-c="E06000041" data-n="Wokingham" data-p="19.7" data-k="1370" data-r="South East"></path>
+<path class="la" d="M276,517L272,511L281,510L281,517L280,517Z" data-c="E08000031" data-n="Wolverhampton" data-p="7.0" data-k="1740" data-r="West Midlands"></path>
+<path class="la" d="M271,558L269,552L274,553Z" data-c="E07000237" data-n="Worcester" data-p="15.2" data-k="660" data-r="West Midlands"></path>
+<path class="la" d="M396,696L398,700L391,702Z" data-c="E07000229" data-n="Worthing" data-p="17.5" data-k="440" data-r="South East"></path>
+<path class="la" d="M222,455L228,460L230,469L237,471L237,477L233,480L230,475L221,472L210,481L205,483L196,480L199,476L214,473L210,469L212,461Z" data-c="W06000006" data-n="Wrexham" data-p="9.8" data-k="740" data-r="Wales"></path>
+<path class="la" d="M300,564L293,568L295,575L290,571L282,575L273,571L275,565L271,558L274,553L269,552L267,541L276,539L279,545L284,546L289,549L288,559L295,559Z" data-c="E07000238" data-n="Wychavon" data-p="9.3" data-k="890" data-r="West Midlands"></path>
+<path class="la" d="M220,381L217,376L217,371L228,368L233,365L243,368L243,374L231,382L226,377Z" data-c="E07000128" data-n="Wyre" data-p="11.7" data-k="390" data-r="North West"></path>
+<path class="la" d="M257,537L261,529L266,527L274,531L276,539L267,541L256,542Z" data-c="E07000239" data-n="Wyre Forest" data-p="12.7" data-k="700" data-r="West Midlands"></path>
+<path class="la" d="M351,362L351,374L340,375L334,370L335,361L342,355Z" data-c="E06000014" data-n="York" data-p="11.2" data-k="1530" data-r="Yorkshire and the Humber"></path>
+      </g>
+      <g class="callouts" aria-hidden="true">
+        <text class="note" x="292" y="30">the only fall:</text>
+        <text class="note" x="292" y="52">18.4% of offices empty</text>
+        <text class="note" x="306" y="160">no new offices</text>
+        <text class="note" x="548" y="362">65% full</text>
+        <path class="note-arrow" d="M544,358 C470,366 410,382 366,384" marker-end="url(#fof-arrow)"/>
+        <text class="note" x="548" y="500">no new offices</text>
+        <path class="note-arrow" d="M560,508 C520,540 440,572 380,571" marker-end="url(#fof-arrow)"/>
+        <text class="note" x="548" y="684">just 42% full</text>
+        <path class="note-arrow" d="M560,666 C540,644 505,632 472,630" marker-end="url(#fof-arrow)"/>
+        <text class="note" x="40" y="826">offices 69% full, the busiest</text>
+        <path class="note-arrow" d="M100,806 C130,740 190,680 240,650" marker-end="url(#fof-arrow)"/>
+      </g>
+      <g id="fof-pin" aria-hidden="true"></g>
+      <g id="fof-dots">
+<g class="dot" data-c="E06000038" data-r="South East" data-place="Reading" data-cat="rising" data-pos="l" data-crowd="1" data-story="2025 was Reading&#x27;s busiest year for office lettings since 2018, and Microsoft took 79,000 sq ft this year." tabindex="0" role="button" aria-label="Reading: rising"><circle cx="353.5" cy="633.2" r="7"></circle><text>Reading</text></g>
+<g class="dot" data-c="E06000043" data-r="South East" data-place="Brighton" data-cat="rising" data-pos="r" data-story="Capgemini took 25,000 sq ft at Hove Central in January, the area&#x27;s biggest office deal in nearly three years." tabindex="0" role="button" aria-label="Brighton: rising"><circle cx="411.3" cy="699.2" r="7"></circle><text>Brighton</text></g>
+<g class="dot" data-c="E07000178" data-r="South East" data-place="Oxford" data-cat="fast" data-pos="l" data-crowd="1" data-story="almost no new offices are in the pipeline, and Oxfordshire companies raised £230m of venture capital in the first three months of 2026, almost as much as in the whole of 2025." tabindex="0" role="button" aria-label="Oxford: rising fast"><circle cx="334" cy="601.8" r="7"></circle><text>Oxford</text></g>
+<g class="dot" data-c="E08000003" data-r="North West" data-place="Manchester" data-cat="rising" data-pos="r" data-story="no new offices are due to complete in 2026, and prime rents hit a record £48 per sq ft." tabindex="0" role="button" aria-label="Manchester: rising"><circle cx="268.2" cy="417.9" r="7"></circle><text>Manchester</text></g>
+<g class="dot" data-c="E07000008" data-r="East of England" data-place="Cambridge" data-cat="rising" data-pos="r" data-story="GSK plans a 300,000 sq ft research centre in the city for more than 1,000 scientists." tabindex="0" role="button" aria-label="Cambridge: rising"><circle cx="423.4" cy="551" r="7"></circle><text>Cambridge</text></g>
+<g class="dot" data-c="E07000240" data-r="East of England" data-place="St Albans" data-cat="fast" data-pos="r" data-crowd="1" data-story="Costa Coffee is moving its UK headquarters to the town." tabindex="0" role="button" aria-label="St Albans: rising fast"><circle cx="394.9" cy="600.3" r="7"></circle><text>St Albans</text></g>
+<g class="dot" data-c="E08000035" data-r="Yorkshire and the Humber" data-place="Leeds" data-cat="rising" data-pos="r" data-story="just 1.7% of top-quality offices are empty, and offices were 65% full in early 2026, against 42% in London." tabindex="0" role="button" aria-label="Leeds: rising"><circle cx="311.9" cy="383.3" r="7"></circle><text>Leeds</text></g>
+<g class="dot" data-c="E06000042" data-r="South East" data-place="Milton Keynes" data-cat="fast" data-pos="l" data-story="one of the UK&#x27;s fastest-growing cities, with no new offices being built." tabindex="0" role="button" aria-label="Milton Keynes: rising fast"><circle cx="366.2" cy="570.3" r="7"></circle><text>Milton Keynes</text></g>
+<g class="dot" data-c="E08000025" data-r="West Midlands" data-place="Birmingham" data-cat="rising" data-pos="r" data-story="prime rents hit a record £52 per sq ft, and top-quality space made up 92% of lettings between April and June 2026." tabindex="0" role="button" aria-label="Birmingham: rising"><circle cx="291" cy="523.9" r="7"></circle><text>Birmingham</text></g>
+<g class="dot" data-c="E08000012" data-r="North West" data-place="Liverpool" data-cat="rising" data-pos="l" data-story="business numbers grew 3.5% in the past year, office lettings in early 2026 were up two-thirds on a year earlier, and Liverpool has the cheapest coworking in our study (£145)." tabindex="0" role="button" aria-label="Liverpool: rising"><circle cx="220.6" cy="425.5" r="7"></circle><text>Liverpool</text></g>
+<g class="dot" data-c="E06000023" data-r="South West" data-place="Bristol" data-cat="fast" data-pos="b" data-story="offices were 69% full in early 2026, the busiest of the big UK cities. An AI hub with under 1% of top-quality space empty." tabindex="0" role="button" aria-label="Bristol: rising fast"><circle cx="246.1" cy="634.3" r="7"></circle><text>Bristol</text></g>
+<g class="dot" data-c="E08000021" data-r="North East" data-place="Newcastle" data-cat="rising" data-pos="r" data-story="the DWP and HMRC are moving into major new offices in the city in 2027." tabindex="0" role="button" aria-label="Newcastle: rising"><circle cx="306.2" cy="257.7" r="7"></circle><text>Newcastle</text></g>
+<g class="dot" data-c="E06000039" data-r="South East" data-place="Slough" data-cat="steady" data-pos="t" data-crowd="1" data-story="£254 a month cheaper than neighbouring Reading, though Siemens&#x27; move this year helped lift prime rents by 5%." tabindex="0" role="button" aria-label="Slough: steady"><circle cx="378.5" cy="626.5" r="7"></circle><text>Slough</text></g>
+<g class="dot" data-c="W06000015" data-r="Wales" data-place="Cardiff" data-cat="rising" data-pos="l" data-story="most empty offices are older; just 1.6% of top-quality space is empty. Prime rents rose 11.7% in a year, and lettings had their strongest first half since 2011." tabindex="0" role="button" aria-label="Cardiff: rising"><circle cx="206.7" cy="631.2" r="7"></circle><text>Cardiff</text></g>
+<g class="dot" data-c="E07000084" data-r="South East" data-place="Basingstoke" data-cat="steady" data-pos="r" data-crowd="1" data-story="the cheapest place in our study to rent a small office." tabindex="0" role="button" aria-label="Basingstoke: steady"><circle cx="346.3" cy="653.3" r="7"></circle><text>Basingstoke</text></g>
+<g class="dot" data-london="1" data-r="London" data-place="London" data-cat="rising" data-pos="r" data-story="" tabindex="0" role="button" aria-label="London: rising"><circle cx="410.2" cy="625.8" r="7"></circle><text>London</text></g>
+<g class="dot" data-r="Scotland" data-place="Glasgow" data-cat="steady" data-pos="l" data-story="business numbers grew 3.7% in the past year, almost double the UK rate, and the Home Office is taking 80,600 sq ft at 200 Broomielaw, the city&#x27;s biggest office deal since 2022." tabindex="0" role="button" aria-label="Glasgow: steady"><circle cx="147" cy="162.1" r="7"></circle><text>Glasgow</text></g>
+<g class="dot" data-r="Scotland" data-place="Edinburgh" data-cat="rising" data-pos="r" data-story="no new speculative offices are being built, and prime rents hit a record £48 per sq ft." tabindex="0" role="button" aria-label="Edinburgh: rising"><circle cx="210.7" cy="153.7" r="7"></circle><text>Edinburgh</text></g>
+<g class="dot" data-r="Scotland" data-place="Aberdeen" data-cat="falling" data-pos="l" data-story="18.4% of offices are empty, the most of the big UK cities, but energy firms took 83% of the space let between April and June 2026." tabindex="0" role="button" aria-label="Aberdeen: falling"><circle cx="275.4" cy="26.2" r="7"></circle><text>Aberdeen</text></g>
+      </g>
+    </svg>
+      <button type="button" class="back" id="fof-back" aria-label="Zoom out to the whole map" title="Zoom out" data-no-capture><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21M7.5 10.5h6"/></svg></button>
+    </div>
+    <div class="key">
+      <button type="button" class="kbtn" data-cat="fast" aria-pressed="false"><i style="background:var(--fast)"></i>Rising fast <small>20%+</small></button>
+      <button type="button" class="kbtn" data-cat="rising" aria-pressed="false"><i style="background:var(--rising)"></i>Rising <small>10–20%</small></button>
+      <button type="button" class="kbtn" data-cat="steady" aria-pressed="false"><i style="background:var(--steady)"></i>Steady <small>0–10%</small></button>
+      <button type="button" class="kbtn" data-cat="falling" aria-pressed="false"><i style="background:var(--falling)"></i>Falling</button>
+    </div>
+    <div class="key-areas">
+      <span>Council areas:</span>
+      <button type="button" class="kbtn" data-band="fast" aria-pressed="false"><b style="background:#EDAE8A"></b>20%+</button>
+      <button type="button" class="kbtn" data-band="rising" aria-pressed="false"><b style="background:#F7D7C2"></b>10–20%</button>
+      <button type="button" class="kbtn" data-band="steady" aria-pressed="false"><b style="background:#BFD8DB"></b>0–10%</button>
+      <span><b style="background:#E4DED1"></b>Scotland (measured differently) and Northern Ireland</span>
+    </div>
+    <p class="info" id="fof-info" aria-live="polite">Tap a city or search for your area.</p>
+  </div>
+  <ul class="notes-list">
+    <li><strong>Bristol:</strong> offices 69% full, the busiest</li>
+    <li><strong>Leeds:</strong> 65% full</li>
+    <li><strong>London:</strong> just 42% full</li>
+    <li><strong>Edinburgh and Milton Keynes:</strong> no new offices</li>
+    <li><strong>Aberdeen:</strong> the only fall, with 18.4% of offices empty</li>
+  </ul>
+  <div class="cities">
+    <h4>Our 19 cities</h4>
+    <p class="hint">Tap a city to find it on the map</p>
+    <div id="fof-cities"></div>
+  </div>
+  <div class="footer">
+    <p>Official rental values: 2026 business rates revaluations (rents in April 2024 vs April 2021; Scotland measured separately). Sources: Valuation Office Agency, Scottish Government, Remit Consulting, analysed by <a href="https://www.freeofficefinder.com/hub/research-reports/uk-office-rental-report-2026" target="_blank" rel="noopener">FreeOfficeFinder</a>. Boundaries: ONS, © Crown copyright 2022.</p>
+  </div>
+  <div class="credit"><a href="https://www.freeofficefinder.com/hub/research-reports/uk-office-rental-report-2026" target="_blank" rel="noopener">FreeOfficeFinder</a></div>
+  <div class="tools" data-no-capture>
+    <button type="button" class="tool-btn" id="fof-embed-btn" aria-expanded="false" aria-controls="fof-embed-box">Embed this map</button>
+    <button type="button" class="tool-btn" id="fof-download-btn">Download map</button>
+    <span class="status" id="fof-status" role="status" aria-live="polite"></span>
+  </div>
+  <div class="embed-box" id="fof-embed-box" data-no-capture>
+    <label for="fof-embed-code">Copy this code and paste it into your page:</label>
+    <textarea id="fof-embed-code" readonly></textarea>
+    <div class="embed-row"><button type="button" class="tool-btn" id="fof-copy-btn">Copy code</button></div>
+  </div>
+</figure>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
+<script>
+window.addEventListener('DOMContentLoaded', function () {
+  var CAT = { fast: ['Rising fast', '#A23C1E'], rising: ['Rising', '#DE7446'], steady: ['Steady', '#5B929B'], falling: ['Falling', '#1D5560'] };
+  // Council areas use the same three bands as the city labels, in soft tints
+  function tint(p) { return p >= 20 ? '#EDAE8A' : p >= 10 ? '#F7D7C2' : '#BFD8DB'; }
+  function band(p) { return p >= 20 ? 'rising fast' : p >= 10 ? 'rising' : 'steady'; }
+  var info = document.getElementById('fof-info');
+  var DEFAULT_INFO = info.innerHTML;
+  var paper = document.getElementById('fof-paper');
+  var mapEl = document.getElementById('fof-map');
+  var group = document.getElementById('fof-las');
+  var pin = document.getElementById('fof-pin');
+  var NS = 'http://www.w3.org/2000/svg';
+  var las = Array.prototype.slice.call(document.querySelectorAll('.la'));
+  var greys = Array.prototype.slice.call(document.querySelectorAll('.grey path'));
+  var dots = Array.prototype.slice.call(document.querySelectorAll('.dot'));
+  var byCode = {}, byName = {}, dotByName = {};
+  las.forEach(function (el) {
+    byCode[el.dataset.c] = el; byName[el.dataset.n.toLowerCase()] = el;
+    el.setAttribute('fill', tint(parseFloat(el.dataset.p)));
+    el.setAttribute('tabindex', '0'); el.setAttribute('role', 'button');
+    el.setAttribute('aria-label', el.dataset.n + ': official office rental values up ' + el.dataset.p + '%');
+    el.addEventListener('click', function () { pick(el); });
+    el.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pick(el); } });
+  });
+  dots.forEach(function (d) { d.querySelector('circle').setAttribute('fill', CAT[d.dataset.cat][1]); dotByName[d.dataset.place.toLowerCase()] = d; });
+
+  // ---------- Zooming ----------
+  function isNarrow() { return window.matchMedia('(max-width: 600px)').matches; }
+  function fullVB() { return isNarrow() ? [-20, 5, 560, 800] : [-20, 5, 780, 860]; }
+  var vb = fullVB(), raf = null, currentRegion = '';
+  function setVB(v) { vb = v; mapEl.setAttribute('viewBox', v.map(function (n) { return n.toFixed(1); }).join(' ')); sizeDots(); }
+  function animateVB(to) {
+    cancelAnimationFrame(raf);
+    var from = vb.slice(), t0 = null, ms = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 450;
+    if (!ms) { setVB(to); return; }
+    function step(t) { if (t0 === null) t0 = t; var k = Math.min(1, (t - t0) / ms), e = 1 - Math.pow(1 - k, 3);
+      setVB(from.map(function (f, i) { return f + (to[i] - f) * e; })); if (k < 1) raf = requestAnimationFrame(step); }
+    raf = requestAnimationFrame(step);
+    setTimeout(function () { if (vb[2] !== to[2]) setVB(to); }, ms + 600);
+  }
+  function boxVB(x0, y0, x1, y1) {
+    var w = x1 - x0, h = y1 - y0, pad = Math.max(w, h) * 0.08, full = fullVB(), ratio = full[2] / full[3];
+    w += pad * 2; h += pad * 2; x0 -= pad; y0 -= pad;
+    if (w / h > ratio) { var nh = w / ratio; y0 -= (nh - h) / 2; h = nh; } else { var nw = h * ratio; x0 -= (nw - w) / 2; w = nw; }
+    return [x0, y0, w, h];
+  }
+  function regionVB(name) {
+    var x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
+    function add(b) { x0 = Math.min(x0, b.x); y0 = Math.min(y0, b.y); x1 = Math.max(x1, b.x + b.width); y1 = Math.max(y1, b.y + b.height); }
+    if (name === 'Scotland') {
+      dots.forEach(function (d) { if (d.dataset.r === 'Scotland') { var c = d.querySelector('circle'); var x = +c.getAttribute('cx'), y = +c.getAttribute('cy'); add({ x: x - 60, y: y - 40, width: 120, height: 80 }); } });
+    } else {
+      las.forEach(function (el) { if (el.dataset.r === name) add(el.getBBox()); });
+    }
+    return boxVB(x0, y0, x1, y1);
+  }
+  function sizeDots() {
+    var w = mapEl.getBoundingClientRect().width || 600, k = vb[2] / w;
+    var fs = (isNarrow() ? 11 : 12) * k;
+    dots.forEach(function (d) {
+      var c = d.querySelector('circle'); c.setAttribute('r', (7 * k).toFixed(2)); c.setAttribute('stroke-width', (2 * k).toFixed(2));
+      var t = d.querySelector('text'); if (!t) return;
+      t.style.display = (isNarrow() && !currentRegion && d.dataset.crowd && !d.classList.contains('hl')) ? 'none' : '';
+      var cx = +c.getAttribute('cx'), cy = +c.getAttribute('cy'), pos = d.dataset.pos || 'r', gap = 10 * k;
+      t.setAttribute('font-size', fs.toFixed(2)); t.setAttribute('stroke-width', (3 * k).toFixed(2));
+      if (pos === 'r') { t.setAttribute('x', cx + gap); t.setAttribute('y', cy + fs * 0.35); t.setAttribute('text-anchor', 'start'); }
+      if (pos === 'l') { t.setAttribute('x', cx - gap); t.setAttribute('y', cy + fs * 0.35); t.setAttribute('text-anchor', 'end'); }
+      if (pos === 't') { t.setAttribute('x', cx); t.setAttribute('y', cy - gap); t.setAttribute('text-anchor', 'middle'); }
+      if (pos === 'b') { t.setAttribute('x', cx); t.setAttribute('y', cy + gap + fs * 0.75); t.setAttribute('text-anchor', 'middle'); }
+    });
+  }
+
+  // ---------- Regions ----------
+  var sel = document.getElementById('fof-region');
+  function citiesIn(name) { return dots.filter(function (d) { return d.dataset.r === name; }); }
+  function regionText(name) {
+    var c = citiesIn(name);
+    if (name === 'Scotland') return '<strong>Scotland:</strong> official values are rising in Edinburgh, steady in Glasgow and falling in Aberdeen.';
+    var list = c.length ? ' Our cities here: ' + c.map(function (d) { return d.dataset.place + ' (' + CAT[d.dataset.cat][0].toLowerCase() + ')'; }).join(', ') + '.' : ' None of our 19 cities is in this region.';
+    return '<strong>' + name + '.</strong>' + list + '';
+  }
+  function clearKey() { kbtns.forEach(function (b) { b.setAttribute('aria-pressed', 'false'); }); dots.forEach(function (d) { d.classList.remove('hl'); }); sizeDots(); }
+  function selectRegion(name, quiet) {
+    clearKey();
+    currentRegion = name; sel.value = name; clearPin();
+    las.forEach(function (el) { el.classList.remove('active'); el.style.opacity = (!name || el.dataset.r === name) ? 1 : 0.25; });
+    dots.forEach(function (d) { d.style.opacity = (!name || d.dataset.r === name) ? 1 : 0.25; d.classList.remove('active'); });
+    paper.classList.toggle('zoomed', !!name);
+    chips.forEach(function (c) { c.classList.remove('on'); });
+    animateVB(name ? regionVB(name) : fullVB());
+    if (!quiet) info.innerHTML = name ? regionText(name) : DEFAULT_INFO;
+  }
+  sel.addEventListener('change', function () { selectRegion(sel.value); });
+  function showAll() { search.value = ''; selectRegion(''); }
+  document.getElementById('fof-back').addEventListener('click', showAll);
+  // Tapping the sea (or grey areas) also zooms back out
+  mapEl.addEventListener('click', function (e) { if (currentRegion && !e.target.closest('.la, .dot')) showAll(); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && currentRegion) showAll(); });
+
+  // ---------- Picking an area or a city ----------
+  function clearPin() { while (pin.firstChild) pin.removeChild(pin.firstChild); }
+  function addPin(el, label) {
+    setTimeout(function () {
+      clearPin();
+      var target = regionVB(el.dataset.r), fs = target[2] / 34, b = el.getBBox();
+      var x = b.x + b.width / 2, y = b.y - fs * 0.5;
+      var txt = document.createElementNS(NS, 'text');
+      txt.setAttribute('x', x); txt.setAttribute('y', y); txt.setAttribute('text-anchor', 'middle'); txt.setAttribute('class', 'pin');
+      txt.setAttribute('font-size', fs.toFixed(1)); txt.setAttribute('stroke-width', (fs / 4).toFixed(1));
+      txt.textContent = label;
+      pin.appendChild(txt);
+      var w = txt.getBBox().width, minX = target[0] + fs * 0.3, maxX = target[0] + target[2] - fs * 0.3;
+      if (x - w / 2 < minX) txt.setAttribute('x', minX + w / 2); else if (x + w / 2 > maxX) txt.setAttribute('x', maxX - w / 2);
+      if (y - fs < target[1]) txt.setAttribute('y', b.y + b.height + fs * 1.1);
+    }, 30);
+  }
+  function pick(el, quietPin) {
+    if (currentRegion !== el.dataset.r) selectRegion(el.dataset.r, true);
+    las.forEach(function (b) { b.classList.remove('active'); if (b.dataset.r === el.dataset.r) b.style.opacity = b === el ? 1 : 0.45; });
+    dots.forEach(function (d) { d.classList.remove('active'); });
+    chips.forEach(function (c) { c.classList.remove('on'); });
+    el.classList.add('active'); group.appendChild(el);
+    var p = parseFloat(el.dataset.p);
+    info.innerHTML = '<strong>' + el.dataset.n + ':</strong> up ' + el.dataset.p + '% (England and Wales: 14.5%).';
+    if (!quietPin) addPin(el, el.dataset.n + ': up ' + el.dataset.p + '%');
+  }
+  function why(d) { return d.dataset.story ? '<span class="why"><b>What\'s happening:</b> ' + d.dataset.story + '</span>' : ''; }
+  function pickCity(d) {
+    var name = d.dataset.place, cat = CAT[d.dataset.cat][0].toLowerCase();
+    if (d.dataset.r === 'Scotland') {
+      selectRegion('Scotland', true);
+      info.innerHTML = '<strong>' + name + ':</strong> ' + cat + why(d);
+    } else if (d.dataset.london) {
+      selectRegion('London', true);
+      info.innerHTML = '<strong>London:</strong> rising, fastest in outer London<span class="why"><b>What\'s happening:</b> offices were just 42% full in early 2026, against 69% in Bristol.</span>';
+    } else {
+      var el = byCode[d.dataset.c]; pick(el, true);
+      info.innerHTML = '<strong>' + name + ':</strong> ' + cat + why(d);
+    }
+    d.classList.add('active');
+    chips.forEach(function (c) { c.classList.toggle('on', c.dataset.place === name); });
+  }
+  dots.forEach(function (d) {
+    d.addEventListener('click', function (e) { e.stopPropagation(); pickCity(d); });
+    d.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pickCity(d); } });
+  });
+
+  // ---------- Search ----------
+  var dl = document.getElementById('fof-areas');
+  las.map(function (el) { return el.dataset.n; }).concat(['Aberdeen', 'Edinburgh', 'Glasgow']).sort().forEach(function (n) { var o = document.createElement('option'); o.value = n; dl.appendChild(o); });
+  var search = document.getElementById('fof-search');
+  search.addEventListener('input', function () {
+    var v = search.value.trim().toLowerCase(); if (!v) return;
+    if (dotByName[v] && (dotByName[v].dataset.r === 'Scotland' || dotByName[v].dataset.london)) { pickCity(dotByName[v]); return; }
+    var el = byName[v];
+    if (!el) { var keys = Object.keys(byName).filter(function (k) { return k.indexOf(v) === 0; }); if (keys.length === 1) el = byName[keys[0]]; }
+    if (el) pick(el);
+  });
+
+  // ---------- Cities grouped by the study's labels ----------
+  var box = document.getElementById('fof-cities'), h = '';
+  [['fast', '20%+'], ['rising', '10–20%'], ['steady', '0–10%'], ['falling', '']].forEach(function (g) {
+    var names = dots.filter(function (d) { return d.dataset.cat === g[0]; }).map(function (d) { return d.dataset.place; }).sort();
+    h += '<div class="cgroup"><span><i style="background:' + CAT[g[0]][1] + '"></i>' + CAT[g[0]][0] + (g[1] ? ' <small>' + g[1] + '</small>' : '') + '</span><div class="chips">';
+    names.forEach(function (n) { h += '<button type="button" class="chip" data-place="' + n + '">' + n + '</button>'; });
+    h += '</div></div>';
+  });
+  box.innerHTML = h;
+  var chips = Array.prototype.slice.call(box.querySelectorAll('.chip'));
+  chips.forEach(function (c) { c.addEventListener('click', function () { pickCity(dotByName[c.dataset.place.toLowerCase()]); mapEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }); });
+
+  // ---------- Key: tap a group to pick it out ----------
+  var kbtns = Array.prototype.slice.call(document.querySelectorAll('.kbtn'));
+  function joinNames(a) { return a.length < 2 ? a.join('') : a.slice(0, -1).join(', ') + ' and ' + a[a.length - 1]; }
+  var BAND_TEST = { fast: function (p) { return p >= 20; }, rising: function (p) { return p >= 10 && p < 20; }, steady: function (p) { return p < 10; } };
+  var BAND_TEXT = { fast: '20% or more', rising: '10% up to 20%', steady: 'less than 10%' };
+  kbtns.forEach(function (b) {
+    b.addEventListener('click', function () {
+      var on = b.getAttribute('aria-pressed') === 'true';
+      if (currentRegion) { search.value = ''; selectRegion('', true); }
+      clearPin(); clearKey();
+      chips.forEach(function (c) { c.classList.remove('on'); });
+      las.forEach(function (el) { el.classList.remove('active'); });
+      dots.forEach(function (d) { d.classList.remove('active'); });
+      if (on) { las.forEach(function (el) { el.style.opacity = 1; }); dots.forEach(function (d) { d.style.opacity = 1; }); info.innerHTML = DEFAULT_INFO; return; }
+      b.setAttribute('aria-pressed', 'true');
+      if (b.dataset.cat) {
+        var cat = b.dataset.cat, names = [];
+        las.forEach(function (el) { el.style.opacity = 0.35; });
+        dots.forEach(function (d) { var hit = d.dataset.cat === cat; d.style.opacity = hit ? 1 : 0.15; d.classList.toggle('hl', hit); if (hit) names.push(d.dataset.place); });
+        sizeDots();
+        info.innerHTML = '<strong>' + CAT[cat][0] + ':</strong> ' + joinNames(names) + (names.length === 1 ? ', the only one of our 19 cities.' : ' (' + names.length + ' of our 19 cities).') + '';
+      } else {
+        var test = BAND_TEST[b.dataset.band], n = 0;
+        las.forEach(function (el) { var hit = test(parseFloat(el.dataset.p)); el.style.opacity = hit ? 1 : 0.12; if (hit) n++; });
+        dots.forEach(function (d) { d.style.opacity = 0.3; });
+        info.innerHTML = '<strong>' + n + ' of ' + las.length + ' council areas</strong> in England and Wales saw official office rental values rise by ' + BAND_TEXT[b.dataset.band] + ' in the 2026 revaluation.';
+      }
+    });
+  });
+
+  window.addEventListener('resize', function () { setVB(currentRegion ? regionVB(currentRegion) : fullVB()); });
+  setVB(fullVB());
+
+  // ---------- Embed ----------
+  var fig = document.querySelector('.fof-graphic');
+  var sourceUrl = fig.getAttribute('data-source-url');
+  var status = document.getElementById('fof-status');
+  function say(msg) { status.textContent = msg; setTimeout(function () { if (status.textContent === msg) status.textContent = ''; }, 4000); }
+  var pageUrl = location.href.split('#')[0].split('?')[0];
+  var embedCode =
+    '<iframe src="' + pageUrl + '" title="Office rental values in our 19 cities – FreeOfficeFinder" ' +
+    'width="100%" height="1400" style="border:0;width:100%;max-width:760px;" loading="lazy" scrolling="no" data-fof-chart></iframe>\n' +
+    '<script>window.addEventListener("message",function(e){if(e.data&&e.data.fofChartHeight){document.querySelectorAll("iframe[data-fof-chart]").forEach(function(f){if(f.contentWindow===e.source)f.style.height=e.data.fofChartHeight+"px";});}});<\/script>\n' +
+    '<p style="font:12px Arial,sans-serif;color:#6B6B6B;">Source: <a href="' + sourceUrl + '">FreeOfficeFinder</a></p>';
+  var embedBox = document.getElementById('fof-embed-box'), embedBtn = document.getElementById('fof-embed-btn'), codeArea = document.getElementById('fof-embed-code');
+  codeArea.value = embedCode;
+  embedBtn.addEventListener('click', function () {
+    var open = embedBox.classList.toggle('open');
+    embedBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    if (open) { codeArea.focus(); codeArea.select(); }
+    postHeight();
+  });
+  document.getElementById('fof-copy-btn').addEventListener('click', function () {
+    codeArea.select();
+    var done = function () { say('Embed code copied'); };
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(codeArea.value).then(done, function () { document.execCommand('copy'); done(); });
+    } else { document.execCommand('copy'); done(); }
+  });
+  function postHeight() {
+    if (window.parent === window) return;
+    window.parent.postMessage({ fofChartHeight: document.documentElement.scrollHeight }, '*');
+  }
+  window.addEventListener('load', postHeight);
+  window.addEventListener('resize', postHeight);
+  postHeight();
+
+  // ---------- Download a PNG (without the buttons) ----------
+  var dlBtn = document.getElementById('fof-download-btn');
+  dlBtn.addEventListener('click', function () {
+    if (typeof html2canvas !== 'function') { say('Image tool did not load. Please try again.'); return; }
+    dlBtn.disabled = true; say('Preparing image…');
+    (document.fonts ? document.fonts.ready : Promise.resolve()).then(function () {
+      return html2canvas(fig, {
+        scale: 2, backgroundColor: '#ffffff', useCORS: true,
+        ignoreElements: function (e) { return e.hasAttribute && e.hasAttribute('data-no-capture'); }
+      });
+    }).then(function (canvas) {
+      canvas.toBlob(function (blob) {
+        var a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'freeofficefinder-office-rental-values-map.png';
+        document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
+        dlBtn.disabled = false; say('Map downloaded');
+      }, 'image/png');
+    }).catch(function () { dlBtn.disabled = false; say('Sorry, the image could not be created.'); });
+  });
+});
+</script>
+</body>
+</html>
