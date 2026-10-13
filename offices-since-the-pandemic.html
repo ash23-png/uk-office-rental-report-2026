@@ -317,14 +317,14 @@
       </g></svg>
       <p class="pc-cap"><span class="num" id="fof-pc-num">1</span><span id="fof-pc-text"></span><span class="pc-price" id="fof-pc-price"></span></p>
       <p class="pc-text" id="fof-pc-story"></p>
-      <span class="swipe-hint" aria-hidden="true">Swipe or tap a number for the next chapter</span>
+      <span class="swipe-hint" aria-hidden="true" data-no-capture>Swipe or tap a number for the next chapter</span>
     </div>
     <div class="info-row" id="fof-info-row">
       <button type="button" class="play-btn" id="fof-play" data-no-capture><span class="ico" aria-hidden="true"></span><span class="lbl">Play the story</span></button>
       <div class="pager" id="fof-pager" role="group" aria-label="Chapters" data-no-capture>
         <button type="button" aria-label="Chapter 1">1</button><button type="button" aria-label="Chapter 2">2</button><button type="button" aria-label="Chapter 3">3</button><button type="button" aria-label="Chapter 4">4</button><button type="button" aria-label="Chapter 5">5</button>
       </div>
-      <p class="info" id="fof-info" aria-live="polite">Hover over the line or a chapter to explore the story.</p>
+      <p class="info" id="fof-info" aria-live="polite"><span data-no-capture>Hover over the line or a chapter to explore the story.</span></p>
     </div>
   </div>
 
@@ -447,7 +447,7 @@ window.addEventListener('DOMContentLoaded', function () {
   var pagerBtns = Array.prototype.slice.call(document.querySelectorAll('#fof-pager button'));
   function tell(n) { info.innerHTML = '<strong>' + WHEN[n] + ':</strong> ' + STORY[n]; }
   function isMobile() { return window.matchMedia('(max-width: 700px)').matches; }
-  if (isMobile()) info.textContent = 'Tap the line for the price in any quarter.';
+  if (isMobile()) info.innerHTML = '<span data-no-capture>Tap the line for the price in any quarter.</span>';
   // Which chapter each quarter belongs to
   function chapterOf(i) { return i === 0 ? 0 : i <= 4 ? 1 : i <= 7 ? 2 : i <= 22 ? 3 : 4; }
 
@@ -661,10 +661,15 @@ window.addEventListener('DOMContentLoaded', function () {
       navigator.clipboard.writeText(codeArea.value).then(done, function () { document.execCommand('copy'); done(); });
     } else { document.execCommand('copy'); done(); }
   });
+  // Tell the page the chart's real height (measured from the chart itself, so it can shrink as well as grow)
   function postHeight() {
     if (window.parent === window) return;
-    window.parent.postMessage({ fofChartHeight: document.documentElement.scrollHeight }, '*');
+    var g = document.querySelector('.fof-graphic');
+    var h = g ? Math.ceil(g.getBoundingClientRect().height) : document.body.scrollHeight;
+    window.parent.postMessage({ fofChartHeight: h }, '*');
   }
+  if (window.ResizeObserver && document.querySelector('.fof-graphic')) new ResizeObserver(postHeight).observe(document.querySelector('.fof-graphic'));
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(postHeight);
   window.addEventListener('load', postHeight);
   window.addEventListener('resize', postHeight);
   postHeight();
