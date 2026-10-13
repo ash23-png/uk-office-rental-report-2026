@@ -82,8 +82,7 @@
     </table>
   </div>
   <div class="footer">
-    <p><strong>How to read this:</strong> the rise in the average monthly price of one desk in a private office, comparing October 2020–September 2021 with October 2025–September 2026. The top 5 are the cities where desk prices rose faster than the UK average, and government and property agents' figures show rents rising too.</p>
-    <p><strong>Source:</strong> <a href="https://www.freeofficefinder.com/hub/research-reports/uk-office-rental-report-2026" target="_blank" rel="noopener">FreeOfficeFinder</a> price records, 2020–2026.</p>
+    <p>Average monthly price of one desk in a private office, Oct 2020–Sep 2021 vs Oct 2025–Sep 2026. The top 5 rose faster than the UK average, backed up by government and property agents' figures. <strong>Source:</strong> <a href="https://www.freeofficefinder.com/hub/research-reports/uk-office-rental-report-2026" target="_blank" rel="noopener">FreeOfficeFinder</a> price records.</p>
   </div>
   <div class="credit"><a href="https://www.freeofficefinder.com/hub/research-reports/uk-office-rental-report-2026" target="_blank" rel="noopener">FreeOfficeFinder</a></div>
   <div class="tools" data-no-capture>
@@ -163,25 +162,53 @@ window.addEventListener('DOMContentLoaded', function () {
 
   // ---------- Download a PNG of the chart (without the buttons) ----------
   var dlBtn = document.getElementById('fof-download-btn');
-  dlBtn.addEventListener('click', function () {
-    if (typeof html2canvas !== 'function') { say('Image tool did not load. Please try again.'); return; }
-    dlBtn.disabled = true; say('Preparing image…');
-    (document.fonts ? document.fonts.ready : Promise.resolve()).then(function () {
+  function makeCanvas() {
+    return (document.fonts ? document.fonts.ready : Promise.resolve()).then(function () {
       return html2canvas(fig, {
         scale: 2, backgroundColor: '#ffffff', useCORS: true,
         ignoreElements: function (el) { return el.hasAttribute && el.hasAttribute('data-no-capture'); }
       });
-    }).then(function (canvas) {
-      canvas.toBlob(function (blob) {
+    }).then(function (c) { fig.classList.remove('fof-capturing'); return c; }, function (e) { fig.classList.remove('fof-capturing'); throw e; });
+  }
+  // Downloads always show the full, desktop-size chart, whatever the reader's screen size:
+  // we draw it in a hidden full-width copy of this page and save that picture.
+  function captureFull() {
+    return new Promise(function (resolve, reject) {
+      var f = document.createElement('iframe'), done = false;
+      f.setAttribute('aria-hidden', 'true'); f.tabIndex = -1;
+      f.style.cssText = 'position:absolute;left:-12000px;top:0;width:800px;height:2400px;border:0;';
+      function finish(ok, val) { if (done) return; done = true; window.removeEventListener('message', onMsg); if (f.parentNode) f.parentNode.removeChild(f); if (ok) resolve(val); else reject(); }
+      function onMsg(e) { if (e.source === f.contentWindow && e.data && e.data.fofCapture) finish(e.data.fofCapture !== 'error', e.data.fofCapture); }
+      window.addEventListener('message', onMsg);
+      f.src = location.pathname + '?fofcapture=1' + '';
+      document.body.appendChild(f);
+      setTimeout(function () { finish(false); }, 25000);
+    });
+  }
+  dlBtn.addEventListener('click', function () {
+    if (typeof html2canvas !== 'function') { say('Image tool did not load. Please try again.'); return; }
+    dlBtn.disabled = true; say('Preparing image…');
+    var fileName = 'freeofficefinder-top-5-rising-cities.png';
+    captureFull().catch(function () { return makeCanvas().then(function (cv) { return cv.toDataURL('image/png'); }); })
+      .then(function (url) { return fetch(url).then(function (r) { return r.blob(); }); })
+      .then(function (blob) {
         var a = document.createElement('a');
         a.href = URL.createObjectURL(blob);
-        a.download = 'freeofficefinder-top-5-rising-cities.png';
+        a.download = fileName;
         document.body.appendChild(a); a.click(); a.remove();
         setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
         dlBtn.disabled = false; say('Image downloaded');
-      }, 'image/png');
-    }).catch(function () { dlBtn.disabled = false; say('Sorry, the image could not be created.'); });
+      })
+      .catch(function () { dlBtn.disabled = false; say('Sorry, the image could not be created.'); });
   });
+  // When this page is the hidden full-width copy, draw the picture and hand it back
+  if (/[?&]fofcapture=1/.test(location.search) && window.parent !== window) {
+    window.addEventListener('load', function () {
+      setTimeout(function () {
+        makeCanvas().then(function (cv) { window.parent.postMessage({ fofCapture: cv.toDataURL('image/png') }, '*'); }, function () { window.parent.postMessage({ fofCapture: 'error' }, '*'); });
+      }, 400);
+    });
+  }
 });
 </script>
 </body>
