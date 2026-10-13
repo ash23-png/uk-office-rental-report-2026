@@ -28,6 +28,7 @@
   thead th button { all: unset; box-sizing: border-box; display: block; width: 100%; min-height: 44px; padding: 10px 8px; cursor: pointer; font-size: 11px; line-height: 1.3; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
   thead th button:hover { color: var(--ink); }
   thead th button:focus-visible { outline: 2px solid var(--teal); outline-offset: -2px; }
+  .fof-capturing thead th button::after { content: none !important; }
   thead th button::after { content: "↕"; margin-left: 4px; opacity: .4; }
   thead th[aria-sort="ascending"] button, thead th[aria-sort="descending"] button { color: var(--ink); }
   thead th[aria-sort="ascending"] button::after { content: "↑"; opacity: 1; }
@@ -85,6 +86,13 @@
   .legend-labels span:last-child { text-align: right; }
   .info { margin: 10px 0 0; min-height: 2.6em; font-size: 14px; line-height: 1.4; color: var(--ink); }
   .info strong { font-weight: 600; }
+  .bflow { margin: 12px 0 0; }
+  .bflow p { margin: 0; font-size: 12.5px; line-height: 1.9; color: var(--body); }
+  .bflow .clabel { display: inline-block; min-width: 92px; font-size: 10.5px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--teal); margin-right: 6px; white-space: nowrap; }
+  .bflow .chip { appearance: none; font: inherit; color: var(--body); background: none; border: 0; padding: 0; margin: 0 9px 0 0; cursor: pointer; white-space: nowrap; display: inline-flex; align-items: center; gap: 4px; }
+  .bflow .chip i { display: inline-block; width: 8px; height: 8px; border-radius: 50%; }
+  @media (hover: hover) { .bflow .chip:hover { color: var(--teal); text-decoration: underline; text-underline-offset: 2px; } }
+  .bflow .chip.on { color: var(--teal); font-weight: 600; }
   .notes-list { display: none; margin: 12px 0 0; padding: 0; list-style: none; font-family: Caveat, "Comic Sans MS", cursive; font-size: 20px; line-height: 1.3; color: #4A4036; }
   .notes-list li { margin: 0 0 4px; }
   .notes-list strong { font-weight: 600; }
@@ -125,8 +133,7 @@
   </div>
   <button type="button" class="tool-btn more" id="fof-more" aria-expanded="false" data-no-capture>Show all 61 areas</button>
   <div class="footer">
-    <p><strong>How to read this:</strong> the average monthly price of one desk in a private office, October 2025 to September 2026. Darker bars mean more expensive.<span data-no-capture> Tap or click a column heading to sort.</span></p>
-    <p><strong>Source:</strong> <a href="https://www.freeofficefinder.com/hub/research-reports/uk-office-rental-report-2026" target="_blank" rel="noopener">FreeOfficeFinder</a> price records. Watford and Borehamwood are included because FreeOfficeFinder groups them with London.</p>
+    <p>Average monthly price of one desk in a private office, Oct 2025–Sep 2026. Includes Watford and Borehamwood, which FreeOfficeFinder groups with London.<span data-no-capture> Tap a heading to sort.</span> <strong>Source:</strong> <a href="https://www.freeofficefinder.com/hub/research-reports/uk-office-rental-report-2026" target="_blank" rel="noopener">FreeOfficeFinder</a> price records.</p>
   </div>
   </div>
   <div class="panel" id="fof-panel-map" role="tabpanel" aria-labelledby="fof-tab-map" hidden>
@@ -205,10 +212,10 @@
       <li><strong>Canary Wharf (Tower Hamlets):</strong> up 4.6%, the slowest rise</li>
       <li><strong>Outer London</strong> up 18.6%, against 14.0% in inner London</li>
     </ul>
+    <div class="bflow" id="fof-bflow"></div>
   </div>
   <div class="footer" id="fof-map-footer" hidden>
-    <p><strong>How to read this:</strong> the change in the government's official rental values for offices in each London borough (the figures used for business rates), April 2021 to April 2024. Coral areas rose faster than the England and Wales average (14.5%), teal areas slower.<span data-no-capture> Tap a borough for its figure.</span></p>
-    <p><strong>Source:</strong> Valuation Office Agency, 2026 business rates revaluation, analysed by <a href="https://www.freeofficefinder.com/hub/research-reports/uk-office-rental-report-2026" target="_blank" rel="noopener">FreeOfficeFinder</a>. Inner and outer London follow the official ONS definitions.</p>
+    <p>Change in official office rental values (the figures used for business rates), April 2021 to April 2024. Coral rose faster than the England and Wales average (14.5%), teal slower. Inner and outer London as defined by the ONS. <strong>Source:</strong> Valuation Office Agency, 2026 revaluation.</p>
   </div>
   <div class="credit"><a href="https://www.freeofficefinder.com/hub/research-reports/uk-office-rental-report-2026" target="_blank" rel="noopener">FreeOfficeFinder</a></div>
   <div class="tools" data-no-capture>
@@ -329,6 +336,25 @@ window.addEventListener('DOMContentLoaded', function () {
 
   // When embedded, tell the host page how tall the chart is so the iframe fits with no scrollbar.
   // Tell the page the chart's real height (measured from the chart itself, so it can shrink as well as grow)
+  // Downloads: the picture tool can't see web fonts inside the map drawing, so we hand them over directly
+  function fofFontCSS() {
+    var url = 'https://fonts.googleapis.com/css2?family=Caveat:wght@600&family=Inter:wght@500;600;700&display=swap';
+    return fetch(url).then(function (r) { return r.text(); }).then(function (css) {
+      var blocks = css.split('/* ').filter(function (b) { return b.indexOf('latin */') === 0; }).map(function (b) { return b.slice(b.indexOf('@font-face')); });
+      return Promise.all(blocks.map(function (b) {
+        var m = b.match(/url\((https:[^)]+)\)/); if (!m) return b;
+        return fetch(m[1]).then(function (r) { return r.blob(); }).then(function (blob) {
+          return new Promise(function (res) { var fr = new FileReader(); fr.onload = function () { res(b.replace(m[1], fr.result)); }; fr.readAsDataURL(blob); });
+        });
+      })).then(function (parts) { return parts.join('\n'); });
+    }).catch(function () { return ''; });
+  }
+  function fofEmbedFonts(doc, css) {
+    if (!css) return;
+    Array.prototype.forEach.call(doc.querySelectorAll('svg'), function (svg) {
+      var st = doc.createElementNS('http://www.w3.org/2000/svg', 'style'); st.textContent = css; svg.insertBefore(st, svg.firstChild);
+    });
+  }
   function postHeight() {
     if (window.parent === window) return;
     var g = document.querySelector('.fof-graphic');
@@ -342,25 +368,55 @@ window.addEventListener('DOMContentLoaded', function () {
 
   // ---------- Download a PNG of whichever view is showing (without the buttons) ----------
   var dlBtn = document.getElementById('fof-download-btn');
+  function makeCanvas() {
+    return (document.fonts ? document.fonts.ready : Promise.resolve()).then(fofFontCSS).then(function (fontCSS) {
+      fig.classList.add('fof-capturing');
+      return html2canvas(fig, {
+        scale: 2, backgroundColor: '#ffffff', useCORS: true,
+        onclone: function (doc) { fofEmbedFonts(doc, fontCSS); },
+        ignoreElements: function (el) { return el.hasAttribute && el.hasAttribute('data-no-capture'); }
+      });
+    }).then(function (c) { fig.classList.remove('fof-capturing'); return c; }, function (e) { fig.classList.remove('fof-capturing'); throw e; });
+  }
+  // Downloads always show the full, desktop-size chart, whatever the reader's screen size:
+  // we draw it in a hidden full-width copy of this page and save that picture.
+  function captureFull() {
+    return new Promise(function (resolve, reject) {
+      var f = document.createElement('iframe'), done = false;
+      f.setAttribute('aria-hidden', 'true'); f.tabIndex = -1;
+      f.style.cssText = 'position:absolute;left:-12000px;top:0;width:800px;height:2400px;border:0;';
+      function finish(ok, val) { if (done) return; done = true; window.removeEventListener('message', onMsg); if (f.parentNode) f.parentNode.removeChild(f); if (ok) resolve(val); else reject(); }
+      function onMsg(e) { if (e.source === f.contentWindow && e.data && e.data.fofCapture) finish(e.data.fofCapture !== 'error', e.data.fofCapture); }
+      window.addEventListener('message', onMsg);
+      f.src = location.pathname + '?fofcapture=1' + (panels[1].hidden ? '' : '#map');
+      document.body.appendChild(f);
+      setTimeout(function () { finish(false); }, 25000);
+    });
+  }
   dlBtn.addEventListener('click', function () {
     if (typeof html2canvas !== 'function') { say('Image tool did not load. Please try again.'); return; }
     dlBtn.disabled = true; say('Preparing image…');
-    (document.fonts ? document.fonts.ready : Promise.resolve()).then(function () {
-      return html2canvas(fig, {
-        scale: 2, backgroundColor: '#ffffff', useCORS: true,
-        ignoreElements: function (el) { return el.hasAttribute && el.hasAttribute('data-no-capture'); }
-      });
-    }).then(function (canvas) {
-      canvas.toBlob(function (blob) {
+    var fileName = panels[1].hidden ? 'freeofficefinder-london-areas-ranked.png' : 'freeofficefinder-london-rising-map.png';
+    captureFull().catch(function () { return makeCanvas().then(function (cv) { return cv.toDataURL('image/png'); }); })
+      .then(function (url) { return fetch(url).then(function (r) { return r.blob(); }); })
+      .then(function (blob) {
         var a = document.createElement('a');
         a.href = URL.createObjectURL(blob);
-        a.download = panels[1].hidden ? 'freeofficefinder-london-areas-ranked.png' : 'freeofficefinder-london-rising-map.png';
+        a.download = fileName;
         document.body.appendChild(a); a.click(); a.remove();
         setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
         dlBtn.disabled = false; say('Image downloaded');
-      }, 'image/png');
-    }).catch(function () { dlBtn.disabled = false; say('Sorry, the image could not be created.'); });
+      })
+      .catch(function () { dlBtn.disabled = false; say('Sorry, the image could not be created.'); });
   });
+  // When this page is the hidden full-width copy, draw the picture and hand it back
+  if (/[?&]fofcapture=1/.test(location.search) && window.parent !== window) {
+    window.addEventListener('load', function () {
+      setTimeout(function () {
+        makeCanvas().then(function (cv) { window.parent.postMessage({ fofCapture: cv.toDataURL('image/png') }, '*'); }, function () { window.parent.postMessage({ fofCapture: 'error' }, '*'); });
+      }, 400);
+    });
+  }
 
   // ---------- Tabs ----------
   var title = document.getElementById('fof-title');
@@ -397,20 +453,32 @@ window.addEventListener('DOMContentLoaded', function () {
     }
   }
   var info = document.getElementById('fof-info');
+  var DEFAULT_INFO = info.innerHTML;
   var boroughs = Array.prototype.slice.call(document.querySelectorAll('.borough'));
   boroughs.forEach(function (el) {
     el.setAttribute('tabindex', '0'); el.setAttribute('role', 'button');
     el.setAttribute('aria-label', el.dataset.name + ': official rental values up ' + el.dataset.pct + '%');
     el.setAttribute('fill', heat(parseFloat(el.dataset.pct)));
     function pick() {
+      // Tap again to deselect
+      if (el.classList.contains('active')) { el.classList.remove('active'); info.innerHTML = DEFAULT_INFO; return; }
       boroughs.forEach(function (b) { b.classList.remove('active'); });
       el.classList.add('active');
       el.parentNode.appendChild(el);
       info.innerHTML = '<strong>' + el.dataset.name + ':</strong> official office rental values up ' + el.dataset.pct + '% (2021 to 2024), across ' + Number(el.dataset.n).toLocaleString('en-GB') + ' offices.';
     }
-    el.addEventListener('click', pick);
+    el.addEventListener('click', function () { pick(); syncChips(); });
     el.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pick(); } });
   });
+
+  // Fastest and slowest five boroughs, tap a name to pick it out on the map
+  var bflow = document.getElementById('fof-bflow');
+  var sorted = boroughs.slice().sort(function (a, b) { return parseFloat(b.dataset.pct) - parseFloat(a.dataset.pct); });
+  function chipsFor(list) { return list.map(function (el) { return '<button type="button" class="chip" data-name="' + el.dataset.name + '"><i style="background:' + el.getAttribute('fill') + '"></i>' + el.dataset.name + '</button>'; }).join(''); }
+  bflow.innerHTML = '<p><span class="clabel">Fastest rise</span>' + chipsFor(sorted.slice(0, 5)) + '</p><p><span class="clabel">Slowest rise</span>' + chipsFor(sorted.slice(-5).reverse()) + '</p>';
+  var bchips = Array.prototype.slice.call(bflow.querySelectorAll('.chip'));
+  function syncChips() { var a = document.querySelector('.borough.active'); bchips.forEach(function (c) { c.classList.toggle('on', !!a && a.dataset.name === c.dataset.name); }); }
+  bchips.forEach(function (c) { c.addEventListener('click', function () { var el = boroughs.filter(function (b) { return b.dataset.name === c.dataset.name; })[0]; if (el) el.dispatchEvent(new MouseEvent('click', { bubbles: true })); }); });
 
   refresh();
   // Open on the map if the link ends in #map (used by the map's embed code).
