@@ -333,7 +333,7 @@
       <div class="txt">
       <span class="when"><span class="num">1</span>Early 2020</span>
       <h4>Before the pandemic</h4>
-      <p class="story">Offices are full, and a desk in a private office costs about £285 a month.</p>
+      <p class="story">Offices are busy, and a desk in a private office costs about £285 a month.</p>
       <span class="price-chip">£285 a month</span></div>
     </button></li>
     <li class="chapter" data-i="1"><button type="button" aria-label="Chapter 2: April 2020, offices empty out">
@@ -361,13 +361,13 @@
       <div class="txt">
       <span class="when"><span class="num">5</span>2026</span>
       <h4>A scramble for the best space</h4>
-      <p class="story">Office attendance hits its highest level since the pandemic, almost nothing new is being built, and a desk costs more than before Covid.</p>
+      <p class="story">Office attendance hits its highest level since the pandemic, most of the office space taken in the regions is prime, and a desk costs more than before Covid.</p>
       <span class="price-chip">About £317 a month</span></div>
     </button></li>
   </ol>
 
   <div class="footer">
-    <p>UK average monthly price of one desk in a private office, each quarter from January 2020 to September 2026, not adjusted for inflation. Chapter 5 is the past year's average. <strong>Sources:</strong> <a href="https://www.freeofficefinder.com/hub/research-reports/uk-office-rental-report-2026" target="_blank" rel="noopener">FreeOfficeFinder</a> price records, ONS, Remit Consulting, Avison Young.</p>
+    <p>UK average monthly price of one desk in a private office, each quarter from January 2020 to September 2026, not adjusted for inflation. Chapter 5 is the past year's average. <strong>Sources:</strong> <a href="https://www.freeofficefinder.com/hub/research-reports/uk-office-rental-report-2026" target="_blank" rel="noopener">FreeOfficeFinder</a> price records, ONS, Remit Consulting, Lambert Smith Hampton.</p>
   </div>
   <div class="credit"><a href="https://www.freeofficefinder.com/hub/research-reports/uk-office-rental-report-2026" target="_blank" rel="noopener">FreeOfficeFinder</a></div>
   <div class="tools" data-no-capture>
@@ -439,7 +439,7 @@ window.addEventListener('DOMContentLoaded', function () {
   var svg = document.getElementById('fof-chart'), dot = document.getElementById('fof-cursor-dot'), vline = document.getElementById('fof-cursor-line');
   var paper = document.querySelector('.paper'), postcard = document.getElementById('fof-postcard'), link = document.getElementById('fof-link');
   var scenes = Array.prototype.slice.call(postcard.querySelectorAll('.scene'));
-  var HAND = ['A normal working week', 'Lights off, laptops go home', 'Prices hit the floor', 'Some days in, some days at home', 'Everyone wants the best desks'];
+  var HAND = ['A normal working week', 'Lights off, laptops go home', 'Prices hit the floor', 'Some days in, some days at home', 'Everyone wants the best offices'];
   var STORY = cards.map(function (c) { return c.querySelector('.story').textContent; });
   var WHEN = cards.map(function (c) { return c.querySelector('.when').textContent.replace(/^\d/, '').trim(); });
   var PRICE = cards.map(function (c) { return c.querySelector('.price-chip').textContent; });
