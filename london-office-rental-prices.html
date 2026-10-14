@@ -187,8 +187,8 @@
           <text class="note" x="6" y="34">Harrow: up 42.8%,</text>
           <text class="note" x="6" y="56">the fastest rise in London</text>
           <path class="note-arrow" d="M120,64 C140,80 150,100 153,122" marker-end="url(#fof-arrow)"/>
-          <text class="note" x="752" y="30" text-anchor="end">Canary Wharf</text>
-          <text class="note" x="752" y="52" text-anchor="end">(Tower Hamlets): up 4.6%,</text>
+          <text class="note" x="752" y="30" text-anchor="end">Tower Hamlets</text>
+          <text class="note" x="752" y="52" text-anchor="end">(home of Canary Wharf): up 4.6%,</text>
           <text class="note" x="752" y="74" text-anchor="end">the slowest rise</text>
           <path class="note-arrow" d="M640,84 C560,140 470,200 440,276" marker-end="url(#fof-arrow)"/>
           <text class="note" x="752" y="458" text-anchor="end">Greenwich:</text>
@@ -209,13 +209,13 @@
     <ul class="notes-list">
       <li><strong>Harrow:</strong> up 42.8%, the fastest rise in London</li>
       <li><strong>Greenwich:</strong> up 31.3%</li>
-      <li><strong>Canary Wharf (Tower Hamlets):</strong> up 4.6%, the slowest rise</li>
-      <li><strong>Outer London</strong> up 18.6%, against 14.0% in inner London</li>
+      <li><strong>Tower Hamlets (home of Canary Wharf):</strong> up 4.6%, the slowest rise</li>
+      <li><strong>Outer London:</strong> up 18.6%, against 14.0% in inner London</li>
     </ul>
     <div class="bflow" id="fof-bflow"></div>
   </div>
   <div class="footer" id="fof-map-footer" hidden>
-    <p>Change in official office rental values (the figures used for business rates), April 2021 to April 2024. Coral rose faster than the England and Wales average (14.5%), teal slower. Inner and outer London as defined by the ONS. <strong>Source:</strong> Valuation Office Agency, 2026 revaluation.</p>
+    <p>Change in official office rental values (the figures used for business rates), April 2021 to April 2024. Coral boroughs rose faster than the England and Wales average (14.5%), teal boroughs slower. Inner and outer London as defined by the ONS. <strong>Source:</strong> Valuation Office Agency, 2026 revaluation.</p>
   </div>
   <div class="credit"><a href="https://www.freeofficefinder.com/hub/research-reports/uk-office-rental-report-2026" target="_blank" rel="noopener">FreeOfficeFinder</a></div>
   <div class="tools" data-no-capture>
@@ -234,7 +234,7 @@
 window.addEventListener('DOMContentLoaded', function () {
   // Table rows: [rank, area, monthly desk price (£), C = Central London / G = Greater London / O = just outside London]
   var DATA = [[1,"Mayfair",971,"C"],[2,"Soho",890,"C"],[3,"St James's",847,"C"],[4,"Victoria",839,"C"],[5,"Monument",833,"C"],[6,"Bank",768,"C"],[7,"Marble Arch",749,"C"],[8,"Oxford Circus",747,"C"],[9,"Euston",734,"C"],[10,"London Bridge",713,"C"],[11,"Knightsbridge",710,"C"],[12,"Covent Garden",708,"C"],[13,"Cannon Street",689,"C"],[14,"King's Cross",681,"C"],[15,"Baker Street",672,"C"],[16,"Southwark",653,"C"],[17,"St Paul's",639,"C"],[18,"Tottenham Court Road",638,"C"],[19,"Piccadilly",625,"C"],[20,"Holborn",622,"C"],[21,"Moorgate",621,"C"],[22,"Westminster",617,"C"],[23,"Marylebone",594,"C"],[24,"Barbican",585,"C"],[25,"Paddington",582,"C"],[26,"Borough",582,"C"],[27,"Farringdon",573,"C"],[28,"Clerkenwell",567,"C"],[29,"Shoreditch",563,"C"],[30,"Canary Wharf",545,"C"],[31,"Chancery Lane",514,"C"],[32,"Kensington",510,"C"],[33,"Aldgate",510,"C"],[34,"Embankment",500,"C"],[34,"Russell Square",500,"C"],[36,"Old Street",490,"C"],[37,"Docklands",483,"C"],[38,"Liverpool Street",473,"C"],[39,"Hammersmith",463,"G"],[40,"Vauxhall",462,"C"],[41,"Angel",460,"C"],[42,"Chelsea",453,"G"],[43,"Waterloo",450,"C"],[44,"Camden",415,"G"],[45,"Islington",403,"G"],[46,"Fulham",379,"G"],[47,"Borehamwood",376,"O"],[47,"Richmond",376,"G"],[49,"Ealing",343,"G"],[50,"Hackney",328,"G"],[51,"Clapham",308,"G"],[52,"Uxbridge",306,"G"],[53,"Wimbledon",302,"G"],[54,"Finchley",299,"G"],[55,"Watford",295,"O"],[56,"Stratford",294,"G"],[57,"Park Royal",282,"G"],[58,"Heathrow",268,"G"],[59,"Croydon",243,"G"],[60,"Harrow",231,"G"],[61,"Enfield",215,"G"]];
-  var SECTION = { C: 'Central London', G: 'Greater London', O: 'Just outside London' };
+  var SECTION = { C: 'Central London', G: 'Elsewhere in London', O: 'Just outside London' };
   var tbodyEl = document.querySelector('#fof-london tbody');
   DATA.forEach(function (r) {
     var tr = document.createElement('tr');
