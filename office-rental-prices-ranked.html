@@ -37,6 +37,8 @@
   .price { width: 60%; }
   .bar-wrap { display: flex; align-items: center; gap: 10px; }
   .bar { height: 14px; border-radius: 0 2px 2px 0; flex: none; }
+  .city small { display: block; margin-top: 1px; font-size: 11px; font-weight: 400; color: var(--muted); }
+  tr.ref td { background: #FBF6EC; }
   .price-val { font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; white-space: nowrap; }
   .footer { margin-top: 14px; font-size: 12px; line-height: 1.55; color: var(--muted); }
   .footer p { margin: 0 0 6px; }
@@ -76,34 +78,35 @@
         <tr>
           <th data-key="rank" aria-sort="ascending"><button type="button">Rank</button></th>
           <th data-key="city"><button type="button">Town or city</button></th>
-          <th data-key="price"><button type="button">Smallest private office, a month</button></th>
+          <th data-key="price"><button type="button">Desk in a private office, a month</button></th>
         </tr>
       </thead>
       <tbody>
-        <tr data-rank="1" data-city="London" data-price="1000"><td class="rank">1</td><td class="city">London</td><td class="price"></td></tr>
-        <tr data-rank="2" data-city="Reading" data-price="664"><td class="rank">2</td><td class="city">Reading</td><td class="price"></td></tr>
-        <tr data-rank="3" data-city="Brighton" data-price="600"><td class="rank">3</td><td class="city">Brighton</td><td class="price"></td></tr>
-        <tr data-rank="4" data-city="Oxford" data-price="570"><td class="rank">4</td><td class="city">Oxford</td><td class="price"></td></tr>
-        <tr data-rank="5" data-city="Manchester" data-price="570"><td class="rank">5</td><td class="city">Manchester</td><td class="price"></td></tr>
-        <tr data-rank="6" data-city="Cambridge" data-price="555"><td class="rank">6</td><td class="city">Cambridge</td><td class="price"></td></tr>
-        <tr data-rank="7" data-city="St Albans" data-price="541"><td class="rank">7</td><td class="city">St Albans</td><td class="price"></td></tr>
-        <tr data-rank="8" data-city="Leeds" data-price="540"><td class="rank">8</td><td class="city">Leeds</td><td class="price"></td></tr>
-        <tr data-rank="9" data-city="Glasgow" data-price="510"><td class="rank">9</td><td class="city">Glasgow</td><td class="price"></td></tr>
-        <tr data-rank="10" data-city="Edinburgh" data-price="500"><td class="rank">10</td><td class="city">Edinburgh</td><td class="price"></td></tr>
-        <tr data-rank="11" data-city="Milton Keynes" data-price="500"><td class="rank">11</td><td class="city">Milton Keynes</td><td class="price"></td></tr>
-        <tr data-rank="12" data-city="Birmingham" data-price="500"><td class="rank">12</td><td class="city">Birmingham</td><td class="price"></td></tr>
-        <tr data-rank="13" data-city="Liverpool" data-price="440"><td class="rank">13</td><td class="city">Liverpool</td><td class="price"></td></tr>
-        <tr data-rank="14" data-city="Bristol" data-price="431"><td class="rank">14</td><td class="city">Bristol</td><td class="price"></td></tr>
-        <tr data-rank="15" data-city="Newcastle" data-price="427"><td class="rank">15</td><td class="city">Newcastle</td><td class="price"></td></tr>
-        <tr data-rank="16" data-city="Slough" data-price="410"><td class="rank">16</td><td class="city">Slough</td><td class="price"></td></tr>
-        <tr data-rank="17" data-city="Cardiff" data-price="380"><td class="rank">17</td><td class="city">Cardiff</td><td class="price"></td></tr>
-        <tr data-rank="18" data-city="Aberdeen" data-price="360"><td class="rank">18</td><td class="city">Aberdeen</td><td class="price"></td></tr>
-        <tr data-rank="19" data-city="Basingstoke" data-price="287"><td class="rank">19</td><td class="city">Basingstoke</td><td class="price"></td></tr>
+        <tr class="ref" data-price="634"><td class="rank">–</td><td class="city">Central London<small>For comparison, not ranked</small></td><td class="price"></td></tr>
+        <tr data-rank="1" data-city="Cambridge" data-price="588"><td class="rank">1</td><td class="city">Cambridge</td><td class="price"></td></tr>
+        <tr data-rank="2" data-city="London (whole city)" data-price="483"><td class="rank">2</td><td class="city">London (whole city)</td><td class="price"></td></tr>
+        <tr data-rank="3" data-city="Bristol" data-price="372"><td class="rank">3</td><td class="city">Bristol</td><td class="price"></td></tr>
+        <tr data-rank="4" data-city="Oxford" data-price="362"><td class="rank">4</td><td class="city">Oxford</td><td class="price"></td></tr>
+        <tr data-rank="5" data-city="Birmingham" data-price="347"><td class="rank">5</td><td class="city">Birmingham</td><td class="price"></td></tr>
+        <tr data-rank="6" data-city="Brighton" data-price="344"><td class="rank">6</td><td class="city">Brighton</td><td class="price"></td></tr>
+        <tr data-rank="7" data-city="Leeds" data-price="343"><td class="rank">7</td><td class="city">Leeds</td><td class="price"></td></tr>
+        <tr data-rank="8" data-city="Reading" data-price="336"><td class="rank">8</td><td class="city">Reading</td><td class="price"></td></tr>
+        <tr data-rank="9" data-city="St Albans" data-price="328"><td class="rank">9</td><td class="city">St Albans</td><td class="price"></td></tr>
+        <tr data-rank="10" data-city="Manchester" data-price="326"><td class="rank">10</td><td class="city">Manchester</td><td class="price"></td></tr>
+        <tr data-rank="11" data-city="Milton Keynes" data-price="308"><td class="rank">11</td><td class="city">Milton Keynes</td><td class="price"></td></tr>
+        <tr data-rank="12" data-city="Edinburgh" data-price="268"><td class="rank">12</td><td class="city">Edinburgh</td><td class="price"></td></tr>
+        <tr data-rank="13" data-city="Aberdeen" data-price="267"><td class="rank">13</td><td class="city">Aberdeen</td><td class="price"></td></tr>
+        <tr data-rank="14" data-city="Liverpool" data-price="262"><td class="rank">14</td><td class="city">Liverpool</td><td class="price"></td></tr>
+        <tr data-rank="15" data-city="Glasgow" data-price="251"><td class="rank">15</td><td class="city">Glasgow</td><td class="price"></td></tr>
+        <tr data-rank="16" data-city="Slough" data-price="218"><td class="rank">16</td><td class="city">Slough</td><td class="price"></td></tr>
+        <tr data-rank="17" data-city="Newcastle" data-price="209"><td class="rank">17</td><td class="city">Newcastle</td><td class="price"></td></tr>
+        <tr data-rank="18" data-city="Cardiff" data-price="199"><td class="rank">18</td><td class="city">Cardiff</td><td class="price"></td></tr>
+        <tr data-rank="19" data-city="Basingstoke" data-price="190"><td class="rank">19</td><td class="city">Basingstoke</td><td class="price"></td></tr>
       </tbody>
     </table>
   </div>
   <div class="footer">
-    <p>Advertised monthly starting price of the smallest private office (for two people). This is for the whole office, not per person. Where two places cost the same, the one with the pricier coworking desk ranks higher.<span data-no-capture> Tap a heading to sort.</span> <strong>Source:</strong> <a href="https://www.freeofficefinder.com/hub/research-reports/uk-office-rental-report-2026" target="_blank" rel="noopener">FreeOfficeFinder</a> listings, October 2026.</p>
+    <p>Monthly price of one desk in a private office, Q3 2026 (prices dated 16 July 2026). The 19 towns and cities are ranked; central London is shown for comparison only, as it is part of London rather than a town or city on its own. London (whole city) is the average for London as a whole.<span data-no-capture> Tap a heading to sort.</span> <strong>Source:</strong> <a href="https://www.freeofficefinder.com/hub/research-reports/uk-office-rental-report-2026" target="_blank" rel="noopener">FreeOfficeFinder</a> pricing tool.</p>
   </div>
   <div class="credit"><a href="https://www.freeofficefinder.com/hub/research-reports/uk-office-rental-report-2026" target="_blank" rel="noopener">FreeOfficeFinder</a></div>
   <div class="tools" data-no-capture>
@@ -124,8 +127,9 @@ window.addEventListener('DOMContentLoaded', function () {
   var sourceUrl = fig.getAttribute('data-source-url');
   var table = document.getElementById('fof-cities');
   var tbody = table.tBodies[0];
-  var rows = Array.prototype.slice.call(tbody.rows);
-  var dark = [35, 96, 108], pale = [196, 216, 219], maxRank = 19, maxPrice = 1000;
+  var rows = Array.prototype.slice.call(tbody.rows).filter(function (r) { return !r.classList.contains('ref'); });
+  var ref = tbody.querySelector('tr.ref');
+  var dark = [35, 96, 108], pale = [196, 216, 219], maxRank = 19, maxPrice = 640;
   function pos(price) { return 'calc((100% - 64px) * ' + (price / maxPrice).toFixed(3) + ')'; }
 
   // Price bars, shaded by rank: darkest at the top, lightest at the bottom.
@@ -136,6 +140,10 @@ window.addEventListener('DOMContentLoaded', function () {
     row.cells[2].innerHTML = '<div class="bar-wrap"><span class="bar" style="width:' + pos(d.price) + ';background:rgb(' + c.join(',') + ')"></span>' +
       '<span class="price-val">£' + Number(d.price).toLocaleString('en-GB') + '</span></div>';
   });
+
+  // Central London comparison row: coral bar, always stays at the top.
+  ref.cells[2].innerHTML = '<div class="bar-wrap"><span class="bar" style="width:' + pos(ref.dataset.price) + ';background:#D6683C"></span>' +
+    '<span class="price-val">£' + Number(ref.dataset.price).toLocaleString('en-GB') + '</span></div>';
 
   // Tap or click a heading to sort; again to reverse.
   var headers = table.tHead.rows[0].cells;
